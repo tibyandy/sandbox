@@ -19,6 +19,7 @@
 
 	<modules>
 		<module>pixint-gae</module>
+		<module>pixint-api-client</module>
 	</modules>
 
 	<dependencies>
@@ -39,7 +40,11 @@
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-core</artifactId>
 		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+        </dependency>
+    </dependencies>
 
 	<dependencyManagement>
 		<dependencies>
