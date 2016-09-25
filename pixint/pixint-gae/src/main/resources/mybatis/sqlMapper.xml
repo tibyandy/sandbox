@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dextra.confidence.melhorcambio.ExchangeRateMapper">
+
+    <select id="schemaExists" resultType="java.lang.Integer">
+        SELECT COUNT(1) > 0 count FROM information_schema.tables WHERE table_schema = 'confidence_melhorcambio'
+    </select>
+
+    <select id="findGenericEntitiesByNames" resultType="com.com.dextra.confidence.melhorcambio.model.GenericEntity">
+        SELECT id, name FROM confidence_melhorcambio.${table}
+        WHERE LOWER(name) IN (<foreach collection="names" item="i" separator=",">LOWER(#{i})</foreach>)
+    </select>
+
+    <select id="findGenericEntities" resultType="com.com.dextra.confidence.melhorcambio.model.GenericEntity">
+        SELECT id, name FROM confidence_melhorcambio.${table}
+    </select>
+
+    <select id="listData" resultType="HashMap">
+        SELECT
+            (SELECT COUNT(1) FROM confidence_melhorcambio.scraping_result) scraping_result,
+            (SELECT COUNT(1) FROM confidence_melhorcambio.city) city,
+            (SELECT COUNT(1) FROM confidence_melhorcambio.company) company,
+            (SELECT COUNT(1) FROM confidence_melhorcambio.type) type,
+            (SELECT COUNT(1) FROM confidence_melhorcambio.exchange_rate) exchange_rate
+    </select>
+
+    <select id="findScrapingDates" resultType="HashMap">
+        SELECT CAST(moment AS DATE) date, COUNT(1) scrapings FROM confidence_melhorcambio.scraping_result
+        GROUP BY date
+        ORDER BY date DESC
+    </select>
+
+    <select id="findScrapingsByDate" resultType="HashMap">
+        SELECT ci.name city, ty.name type, co.name company, sr.moment moment, er.rate
+        FROM confidence_melhorcambio.exchange_rate er
+           , confidence_melhorcambio.scraping_result sr
+           , confidence_melhorcambio.city ci
+           , confidence_melhorcambio.company co
+           , confidence_melhorcambio.type ty
+        WHERE fk_scraping_result_id = sr.id
+          AND fk_city_id = ci.id
+          AND fk_company_id = co.id
+          AND fk_type_id = ty.id
+          AND sr.moment LIKE #{date}
+        ORDER
+          BY sr.moment DESC
+           , ci.name ASC
+           , co.name ASC
+           , er.rate ASC
+    </select>
+
+    <select id="findScrapingsByScrapingId" resultType="HashMap">
+        SELECT ci.name city, ty.name type, co.name company, sr.moment moment, er.rate
+        FROM confidence_melhorcambio.exchange_rate er
+        , confidence_melhorcambio.scraping_result sr
+        , confidence_melhorcambio.city ci
+        , confidence_melhorcambio.company co
+        , confidence_melhorcambio.type ty
+        WHERE fk_scraping_result_id = sr.id
+        AND fk_city_id = ci.id
+        AND fk_company_id = co.id
+        AND fk_type_id = ty.id
+        AND sr.id = #{scrapingId}
+        ORDER
+        BY sr.moment DESC
+        , ci.name ASC
+        , co.name ASC
+        , er.rate ASC
+    </select>
+
+    <select id="findScrapings" resultType="HashMap">
+        SELECT * FROM confidence_melhorcambio.scraping_result ORDER BY moment DESC
+    </select>
+
+    <insert id="createGenericEntities" parameterType="com.com.dextra.confidence.melhorcambio.model.GenericEntity" timeout="20">
+        INSERT INTO confidence_melhorcambio.${table} (name) VALUES <foreach collection="names" item="i" separator=",">(#{i})</foreach>
+    </insert>
+
+    <select id="findExchangeRatesByFilter" resultType="com.com.dextra.confidence.melhorcambio.model.ExchangeRateResultItem">
+        SELECT co.id companyId,
+        co.name company,
+        ty.id typeId,
+        ty.name type,
+        sr.moment moment,
+        er.rate
+        FROM confidence_melhorcambio.exchange_rate er
+        INNER JOIN confidence_melhorcambio.scraping_result sr ON sr.id = er.fk_scraping_result_id
+        INNER JOIN confidence_melhorcambio.city ci ON ci.id = er.fk_city_id
+        INNER JOIN confidence_melhorcambio.company co ON co.id = er.fk_company_id
+        INNER JOIN confidence_melhorcambio.type ty ON ty.id = er.fk_type_id
+        WHERE ty.id = #{type}
+        <if test="cityId != null"> AND ci.id = #{cityId} </if>
+        <if test="companyId != null"> AND co.id = #{companyId} </if>
+        AND sr.moment &gt;= #{startDate}
+        AND sr.moment &lt;= #{endDate}
+        ORDER BY sr.moment DESC, co.name ASC, er.rate ASC
+    </select>
+
+    <insert id="createScrapingResult" timeout="20" useGeneratedKeys="true" keyProperty="id" keyColumn="ID">
+        INSERT INTO confidence_melhorcambio.scraping_result (job_id, moment) VALUES (#{job_id}, #{moment})
+    </insert>
+
+    <insert id="createExchangeRates" parameterType="com.com.dextra.confidence.melhorcambio.model.ExchangeRateEntity" timeout="20">
+        INSERT INTO confidence_melhorcambio.exchange_rate (fk_scraping_result_id, fk_company_id, fk_type_id, fk_city_id, rate) VALUES
+        <foreach collection="list" item="i" separator=",">
+            (#{i.fkScrapingResultId}, #{i.fkCompanyId}, #{i.fkTypeId}, #{i.fkCityId}, #{i.rate})
+        </foreach>
+    </insert>
+
+</mapper>

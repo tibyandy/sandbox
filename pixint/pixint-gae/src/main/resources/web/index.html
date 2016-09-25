@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MelhorCambio</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=0.75">
+    <script src="jquery-2.2.3.min.js"></script>
+    <script src="script.js"></script>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body class="loading">
+<h1>MelhorCambio Scrapinghub Integration</h1>
+<div class="initialize panel">
+    <h2><span class="command_name">Starting application</span>. Please wait...</h2>
+    <div class="content dots"></div>
+</div>
+<div class="running_command panel">
+    <h2>Executing <span class="command_name">Starting application</span>, please wait</h2>
+    <div class="content dots"></div>
+</div>
+<div class="index panel">
+</div>
+<div class="finished_command panel">
+    <h2>Finished executing <span class="command_name"></span>:</h2>
+    <div class="commands">
+        <ul>
+            <li><a class="same_command">Repeat same action</a></li>
+            <li><a href="#">Execute another action</a></li>
+        </ul>
+    </div>
+    <div id="command_answer"></div>
+</div>
+</body>
+
+</html>

@@ -1,10 +1,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.otuka.pigae</groupId>
-	<artifactId>pigae</artifactId>
+	<groupId>org.otuka.pixint</groupId>
+	<artifactId>pixint</artifactId>
 	<packaging>pom</packaging>
-	<name>pigae</name>
+	<name>pixint</name>
 	<version>0.1</version>
 
 	<properties>
@@ -18,7 +18,7 @@
 	</properties>
 
 	<modules>
-		<module>pigae-gae</module>
+		<module>pixint-gae</module>
 	</modules>
 
 	<dependencies>
@@ -268,8 +268,8 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.5.1</version>
 				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
+					<source>1.7</source>
+					<target>1.7</target>
 				</configuration>
 			</plugin>
 			<plugin>
