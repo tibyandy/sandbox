@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Image Binary Extractor",
+  "version": "1.3",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "downloads",
+    "declarativeNetRequest"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ]
+}
