@@ -1,0 +1,11 @@
+/* Tags to the right */
+.crx_tags li { display: list-item }
+.crx_tags li > span { display: flex; flex-direction: row-reverse; justify-content: flex-end; white-space: nowrap; gap: 4px; }
+.crx_tags li > span > span { letter-spacing: 0; margin: 0 }
+.crx_tags li > span > span:nth-last-child(1) > a { color: #da6; }
+.crx_tags li > span > span:nth-last-child(1) > a:visited { color: #976; }
+.crx_tags li > span > span:nth-last-child(1) > a:hover { color: #fff }
+.crx_tags li > span > span:nth-child(1) > a:before { font-weight: bold }
+
+/* Top Pixiv premium banner */
+div:has(button):has(iframe) + div:has(div > iframe) { border: solid 1px #fff; display: none !important; }
