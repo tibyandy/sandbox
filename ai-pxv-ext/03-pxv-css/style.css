@@ -26,3 +26,76 @@ div:has( > div[style*="height: 60px"]:empty) { display: none }
 .crx_like_fav_bar > div { background: rgba(0, 0, 0, 0.92); }
 .crx_like_fav_bar button > div:first-child { background: rgba(0, 0, 0, 0.92); }
 .crx_like_fav_bar > div[style] { transform: none !important; }
+
+/* Work Thumbnail */
+ul:has(.crx_work_thumbnail) {
+    width: calc(250px * 6) !important;
+    margin-left: calc(-22px * 6);
+}
+.crx_work_thumbnail {
+    width: 250px;
+    position: relative;
+    margin: 12px 0 12px 0;
+    position: relative;
+}
+.crx_work_thumbnail > div  {
+    width: 244px;
+}
+.crx_work_thumbnail div[width] {
+    width: 184px;
+    padding-right: 54px;
+}
+.crx_work_tags {
+    position: absolute;
+    right: 12px;
+    top: 0;
+    list-style: none;
+    padding: 0;
+    line-height: 13px;
+    font-size: 11px;
+    text-align: right;
+    color: #fff;
+    text-shadow: 0 0 2px #000, 0 0 1px #000, 0 0 1px #fff, 0 0 1px #fff;
+}
+a:hover .crx_work_tags {
+	opacity: 0;
+}
+a:has(.crx_work_tags):hover img {
+	opacity: 1 !important;
+}
+.crx_work_thumbnail a > div:nth-child(2) {
+    left: auto;
+    flex-flow: row-reverse;
+    padding-right: 0;
+    margin-right: -6px;
+    margin-top: 135px;
+}
+.crx_work_thumbnail a > div:nth-child(2) > div:nth-child(1) > div > div {
+    padding-left: 0;
+}
+.crx_work_thumbnail a > div:nth-child(2) > div:nth-child(1) > div > div::first-letter {
+    color: transparent;
+    letter-spacing: -7px;
+}
+.crx_work_thumbnail a > div:nth-child(2) > div:nth-child(1) > div > div::before {
+    position: absolute;
+    content: '\25cf';
+    margin-left: -0.5px;
+    color: rgb(255, 64, 96);
+    font-weight: bold;
+}
+.crx_work_thumbnail a > div:nth-child(2) > div:nth-child(1):empty + div {
+    width: 42px;
+}
+.crx_work_thumbnail a > div:nth-child(2) > div:nth-child(1):only-child {
+    width: 42px;
+    justify-content: center;
+}
+
+.crx_work_thumbnail div:has(> span span svg) {
+    margin: 0 1px 0 0px;
+    background: transparent;
+    border-radius: 4px;
+    padding: 0 4px;
+    height: 16px;
+}

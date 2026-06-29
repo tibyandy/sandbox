@@ -1,0 +1,159 @@
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&display=swap');
+
+body {
+  background: #000; color: #ccc;
+  font-family: "Oswald", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;	
+  display: flex;
+  gap: 3ch;
+}
+ul { display: flex; margin: 0; padding: 0; list-style: none; }
+.wrap > ul { flex-direction: column; }
+#wrap1 > ul > li { margin-bottom: 6px; }
+#wrap1 > ul > li > ul > li {
+	display: block;
+	width: 4.5ch;
+	margin-right: 6px;
+	text-align: center;
+	font-size: 11px;
+	line-height: 100%;
+}
+#wrap1 > ul > li > ul > li {
+	--dark-text: oklch(from var(--c) max(l, 0.65) min(c, 0.15) h);
+	--dark-outline: oklch(from var(--c) calc(min(l, 0.65)) c h);
+	--dark-border: oklch(from var(--c) calc(min(l, 0.65) / 2) c h);
+	--dark-bg: linear-gradient(to bottom, var(--dark-outline), black);
+	position: relative;
+
+	--light: oklch(from var(--c) calc(max(l, 0.65)) c h);
+	--light-burn: oklch(from var(--light) 0.85 min(c, 0.2) h);
+	--light-outline: linear-gradient(to top, var(--light), var(--light-burn));
+	--dark-border: oklch(from var(--c) calc(min(l, 0.65) / 2) c h);
+	--light-bg: var(--light);
+}
+
+#wrap1 > ul > li > ul > li::before {
+  content: '';
+  content: "";
+  position: absolute;
+  z-index: -1; 
+}
+#wrap1 > ul > li > ul > li:first-child::before {
+  background: var(--dark-outline);
+  inset: -2px;
+}
+
+#wrap1 > ul > li > ul > li:first-child {
+	padding: 1px 0 2px 0;
+	color: var(--dark-text);
+	background: var(--dark-bg);
+    border-color: var(--dark-border);
+	font-weight: 400;
+	border: solid 1px;
+}
+#wrap1 > ul > li > ul > li:last-child::before {
+  background: var(--light-outline);
+  inset: -1px;
+  box-shadow: var(--light) 0 0 0 1px;
+}
+#wrap1 > ul > li > ul > li:last-child {
+	padding: 1px 0 2px 0;
+	margin: 1px;
+	color: #fff;
+	background: #000;
+    font-weight: 400;
+	box-shadow: inset 0 -1px 8px 2px var(--light);
+}
+
+.OC, .TM, .© { --c: darkseagreen; --s: hidden }
+.NotR18 { --c: palegreen }
+.NotAI, .AI { --c: lightcyan }
+.AI {  --s: hidden }
+.NotSolo { --c: violet }
+.Yuri { --c: darkmagenta }
+.PoV { --c: gray }
+.SCA, .Sca { --c: darkgoldenrod }
+.BST, .Beast { --c: darkslategray }
+.BLK, .Tan { --c: saddlebrown }
+.URL, .Uro { --c: yellow }
+.RYO, .Ryona { --c: darkviolet }
+.GUR, .Guro { --c: darkred }
+.S_M, .SM { --c: dimgray }
+.BON, .Bond { --c: navajowhite }
+.EXP, .Expose { --c: lime }
+.SWI, .Swim { --c: deepskyblue }
+.COS, .Costume { --c: turquoise }
+.MLK, .Milk { --c: white }
+.BKK, .Cum, .Condom { --c: beige }
+.OIL, .Oil { --c: lemonchiffon }
+.WET, .Wet { --c: powderblue }
+.CHB, .Chubby, .BOD, .Body, .Flat, .Loli, .Lust, .Tit, .Thigh, .Tongue, .Ass, .Armpit, .Foot, .Back, .Belly, .Face, .Mouth, .Hair, .Hand { --c: pink }
+.CHB, .Chubby, .Body, .Flat, .Loli, .Tit, .Thigh, .Ass, .Armpit, .Foot, .Back, .Belly, .PoV, .Underw { --s: hidden }
+.Anim { --c: orange }
+.PUS, .Pussy, .Open, .Nip { --c: indianred }
+.DCK, .Dick, .Anus { --c: lightcoral }
+.CLT, .Clit, .Throat { --c: deeppink }
+.ANU, .Anal { --c: coral }
+.INS, .Insert { --c: deeppink }
+.SEX, .Sex { --c: deeppink }
+.FSY, .Fantasy { --c: skyblue }
+.MAS, .Mast { --c: violet }
+.PRC, .Pierc { --c: darkslateblue }
+.Pet { --c: mediumpurple }
+.MRK, .Mark { --c: slategray }
+.GEA, .Gear { --c: indigo }
+.TOY, .Toy { --c: orchid }
+.TLT, .Toilet { --c: paleturquoise }
+.GLA, .Glasses, .Underw, .Wear { --c: silver }
+
+#wrap2 { font-size: 13px; font-weight: 500; }
+#wrap2 > ul > li { position: relative; height: 20px }
+
+
+#wrap2 > ul > li > ul > li {
+	line-height: 15px; border: solid 1px #444; position: absolute;
+	padding: 0 4px 2px; white-space: nowrap;
+}
+#wrap2 > ul > li > ul > li:nth-child(1) { left: 0 }
+#wrap2 > ul > li > ul > li:nth-child(2) { left: 80px }
+#wrap2 > ul > li > ul > li:nth-child(3) { left: 200px }
+
+#wrap2 > ul > li > ul > li:first-child {
+	color: #777;
+}
+
+@container style(--c) {
+	@container not style(--s) {
+		#wrap2 > ul > li > ul > li::before {
+			content: '';
+			width: 4px;
+			height: 4px;
+			border-radius: 5px;
+			margin-right: 4px;
+			margin-bottom: 3px;
+			margin-left: 3px;
+			box-shadow: var(--c) 0 0 0 1px;
+			background: oklch(from var(--c) calc(l * 0.4) c h);
+			display: inline-block;
+		}
+		#wrap2 > ul > li > ul > li:nth-child(1) { 
+			color: oklch(from var(--c) calc(min(l * 2, 0.75)) min(c, 0.1) h);		
+			border-color: oklch(from var(--c) calc(l * 0.4) c h);
+		}
+	}
+}
+
+#wrap2 > ul > li > ul > li:nth-child(2) {
+	border-color: var(--c);
+	box-shadow: 0 0 0 1px var(--c) inset;
+}
+#wrap2 > ul > li > ul > li:nth-child(2)::before {
+	box-shadow: oklch(from var(--c) calc(max(l, 0.65)) c h) 0 0 0 1.5px;
+	background: oklch(from var(--c) calc(max(l, 0.65)) c h);
+}
+
+#wrap2 > ul > li > ul > li:nth-child(2) {
+	color: oklch(from var(--c) calc(max(l + 0.2, 0.65)) min(c, 0.2) h);
+	background: oklch(from var(--c) calc(l * 0.4) c h);
+}

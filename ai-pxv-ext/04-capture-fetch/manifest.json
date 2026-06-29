@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Pixiv Fetch Interceptor",
+  "version": "1.0",
+  "host_permissions": [
+    "https://*.pixiv.net/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://*.pixiv.net/*"],
+      "js": ["interceptor.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    }
+  ]
+}
