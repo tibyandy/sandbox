@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+	<meta charset='utf-8'>
+	<meta name='viewport' content='width=device-width, initial-scale=1'>
+	<title>Page Title</title>
+	<style>
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&display=swap');
+
+body {
+  background: #000; color: #ccc;
+  font-family: "Oswald", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;	
+  display: flex;
+  gap: 3ch;
+}
+ul { display: flex; margin: 0; padding: 0; list-style: none; }
+.wrap > ul { flex-direction: column; }
+#wrap1 > ul > li { margin-bottom: 6px; }
+#wrap1 > ul > li > ul > li {
+	display: block;
+	width: 4.5ch;
+	margin-right: 6px;
+	text-align: center;
+	font-size: 11px;
+	line-height: 100%;
+}
+#wrap1 > ul > li > ul > li {
+	--dark-text: oklch(from var(--c) max(l, 0.65) min(c, 0.15) h);
+	--dark-outline: oklch(from var(--c) calc(min(l, 0.65)) c h);
+	--dark-border: oklch(from var(--c) calc(min(l, 0.65) / 2) c h);
+	--dark-bg: linear-gradient(to bottom, var(--dark-outline), black);
+	position: relative;
+
+	--light: oklch(from var(--c) calc(max(l, 0.65)) c h);
+	--light-burn: oklch(from var(--light) 0.85 min(c, 0.2) h);
+	--light-outline: linear-gradient(to top, var(--light), var(--light-burn));
+	--dark-border: oklch(from var(--c) calc(min(l, 0.65) / 2) c h);
+	--light-bg: var(--light);
+}
+
+#wrap1 > ul > li > ul > li::before {
+  content: '';
+  content: "";
+  position: absolute;
+  z-index: -1; 
+}
+#wrap1 > ul > li > ul > li:first-child::before {
+  background: var(--dark-outline);
+  inset: -2px;
+}
+
+#wrap1 > ul > li > ul > li:first-child {
+	padding: 1px 0 2px 0;
+	color: var(--dark-text);
+	background: var(--dark-bg);
+    border-color: var(--dark-border);
+	font-weight: 400;
+	border: solid 1px;
+}
+#wrap1 > ul > li > ul > li:last-child::before {
+  background: var(--light-outline);
+  inset: -1px;
+  box-shadow: var(--light) 0 0 0 1px;
+}
+#wrap1 > ul > li > ul > li:last-child {
+	padding: 1px 0 2px 0;
+	margin: 1px;
+	color: #fff;
+	background: #000;
+    font-weight: 400;
+	box-shadow: inset 0 -1px 8px 2px var(--light);
+}
+
+.OC, .TM, .© { --c: darkseagreen; --s: hidden }
+.NotR18 { --c: palegreen }
+.NotAI, .AI { --c: lightcyan }
+.AI {  --s: hidden }
+.NotSolo { --c: violet }
+.Yuri { --c: darkmagenta }
+.PoV { --c: gray }
+.SCA, .Sca { --c: darkgoldenrod }
+.BST, .Beast { --c: darkslategray }
+.BLK, .Tan { --c: saddlebrown }
+.URL, .Uro { --c: yellow }
+.RYO, .Ryona { --c: darkviolet }
+.GUR, .Guro { --c: darkred }
+.S_M, .SM { --c: dimgray }
+.BON, .Bond { --c: navajowhite }
+.EXP, .Expose { --c: lime }
+.SWI, .Swim { --c: deepskyblue }
+.COS, .Costume { --c: turquoise }
+.MLK, .Milk { --c: white }
+.BKK, .Cum, .Condom { --c: beige }
+.OIL, .Oil { --c: lemonchiffon }
+.WET, .Wet { --c: powderblue }
+.CHB, .Chubby, .BOD, .Body, .Flat, .Loli, .Lust, .Tit, .Thigh, .Tongue, .Ass, .Armpit, .Foot, .Back, .Belly, .Face, .Mouth, .Hair, .Hand { --c: pink }
+.CHB, .Chubby, .Body, .Flat, .Loli, .Tit, .Thigh, .Ass, .Armpit, .Foot, .Back, .Belly, .PoV, .Hair, .Hand, .Costume, .Underw { --s: hidden }
+.Anim { --c: orange }
+.PUS, .Pussy, .Open, .Nip { --c: indianred }
+.DCK, .Dick, .Anus { --c: lightcoral }
+.CLT, .Clit, .Throat { --c: deeppink }
+.ANU, .Anal { --c: coral }
+.INS, .Insert { --c: deeppink }
+.SEX, .Sex { --c: deeppink }
+.FSY, .Fantasy { --c: skyblue }
+.MAS, .Mast { --c: violet }
+.PRC, .Pierc { --c: darkslateblue }
+.Pet { --c: mediumpurple }
+.MRK, .Mark { --c: slategray }
+.GEA, .Gear { --c: indigo }
+.TOY, .Toy { --c: orchid }
+.TLT, .Toilet { --c: paleturquoise }
+.GLA, .Glasses, .Underw, .Wear { --c: silver }
+
+#wrap2 { font-size: 13px; font-weight: 500; }
+#wrap2 > ul > li { position: relative; height: 20px }
+
+
+#wrap2 > ul > li > ul > li {
+	line-height: 15px; border: solid 1px #444; position: absolute;
+	padding: 0 4px 2px; white-space: nowrap;
+}
+#wrap2 > ul > li > ul > li:nth-child(1) { left: 0 }
+#wrap2 > ul > li > ul > li:nth-child(2) { left: 80px }
+#wrap2 > ul > li > ul > li:nth-child(3) { left: 200px }
+
+#wrap2 > ul > li > ul > li:first-child {
+	color: #777;
+}
+
+@container style(--c) {
+	@container not style(--s) {
+		#wrap2 > ul > li > ul > li::before {
+			content: '';
+			width: 4px;
+			height: 4px;
+			border-radius: 5px;
+			margin-right: 4px;
+			margin-bottom: 3px;
+			margin-left: 3px;
+			box-shadow: var(--c) 0 0 0 1px;
+			background: oklch(from var(--c) calc(l * 0.4) c h);
+			display: inline-block;
+		}
+		#wrap2 > ul > li > ul > li:nth-child(1) { 
+			color: oklch(from var(--c) calc(min(l * 2, 0.75)) min(c, 0.1) h);		
+			border-color: oklch(from var(--c) calc(l * 0.4) c h);
+		}
+	}
+}
+
+#wrap2 > ul > li > ul > li:nth-child(2) {
+	border-color: var(--c);
+	box-shadow: 0 0 0 1px var(--c) inset;
+}
+#wrap2 > ul > li > ul > li:nth-child(2)::before {
+	box-shadow: oklch(from var(--c) calc(max(l, 0.65)) c h) 0 0 0 1.5px;
+	background: oklch(from var(--c) calc(max(l, 0.65)) c h);
+}
+
+#wrap2 > ul > li > ul > li:nth-child(2) {
+	color: oklch(from var(--c) calc(max(l + 0.2, 0.65)) min(c, 0.2) h);
+	background: oklch(from var(--c) calc(l * 0.4) c h);
+}
+	</style>
+</head>
+<body>
+	<div class="wrap" id="wrap1">
+		<ul>
+			<li class="SCA"><ul><li>SCA</li><li>SCA</li></ul></li>
+			<li class="BLK"><ul><li>BLK</li><li>BLK</li></ul></li>
+			<li class="URL"><ul><li>URL</li><li>URL</li></ul></li>
+			<li class="TLT"><ul><li>TLT</li><li>TLT</li></ul></li>
+			<li class="PRC"><ul><li>PRC</li><li>PRC</li></ul></li>
+			<li class="GEA"><ul><li>GEA</li><li>GEA</li></ul></li>
+			<li class="SWI"><ul><li>SWI</li><li>SWI</li></ul></li>
+			<li class="EXP"><ul><li>EXP</li><li>EXP</li></ul></li>
+			<li class="COS"><ul><li>COS</li><li>COS</li></ul></li>
+			<li class="OIL"><ul><li>OIL</li><li>OIL</li></ul></li>
+			<li class="WET"><ul><li>WET</li><li>WET</li></ul></li>
+			<li class="MLK"><ul><li>MLK</li><li>MLK</li></ul></li>
+			<li class="BKK"><ul><li>BKK</li><li>BKK</li></ul></li>
+			<li class="GLA"><ul><li>GLA</li><li>GLA</li></ul></li>
+			<li class="BON"><ul><li>BON</li><li>BON</li></ul></li>
+			<li class="S_M"><ul><li>S_M</li><li>S_M</li></ul></li>
+			<li class="MRK"><ul><li>MRK</li><li>MRK</li></ul></li>
+			<li class="BST"><ul><li>BST</li><li>BST</li></ul></li>
+			<li class="FSY"><ul><li>FSY</li><li>FSY</li></ul></li>
+			<li class="BOD"><ul><li>BOD</li><li>BOD</li></ul></li>
+			<li class="CHB"><ul><li>CHB</li><li>CHB</li></ul></li>
+			<li class="PUS"><ul><li>PUS</li><li>PUS</li></ul></li>
+			<li class="TOY"><ul><li>TOY</li><li>TOY</li></ul></li>
+			<li class="INS"><ul><li>INS</li><li>INS</li></ul></li>
+			<li class="SEX"><ul><li>SEX</li><li>SEX</li></ul></li>
+			<li class="MAS"><ul><li>MAS</li><li>MAS</li></ul></li>
+			<li class="RYO"><ul><li>RYO</li><li>RYO</li></ul></li>
+			<li class="CLT"><ul><li>CLT</li><li>CLT</li></ul></li>
+			<li class="GUR"><ul><li>GUR</li><li>GUR</li></ul></li>
+			<li class="ANU"><ul><li>ANU</li><li>ANU</li></ul></li>
+			<li class="DCK"><ul><li>DCK</li><li>DCK</li></ul></li>
+		</ul>
+	</div>
+	<div class="wrap" id="wrap2">
+		<ul>
+			<li class="Anus" ><ul><li>Anus</li><li>Anus</li>              <li>anus : body</li></ul></li>
+			<li class="Armpit" ><ul><li>Armpit</li><li>Armpit</li>          <li>armpit : body</li></ul></li>
+			<li class="Ass" ><ul><li>Ass</li><li>Ass</li>                <li>ass : body</li></ul></li>
+			<li class="Back" ><ul><li>Back</li><li>Back</li>              <li>back : body</li></ul></li>
+			<li class="Belly" ><ul><li>Belly</li><li>Belly</li>            <li>belly : body</li></ul></li>
+			<li class="Clit" ><ul><li>Clit</li><li>Clit</li>              <li>clit : body</li></ul></li>
+			<li class="Dick" ><ul><li>Dick</li><li>Dick</li>              <li>dick : body</li></ul></li>
+			<li class="Face" ><ul><li>Face</li><li>Face</li>              <li>face : body</li></ul></li>
+			<li class="Foot" ><ul><li>Foot</li><li>Foot</li>              <li>foot : body</li></ul></li>
+			<li class="Hair" ><ul><li>Hair</li><li>Hair</li>              <li>hair : body</li></ul></li>
+			<li class="Hand" ><ul><li>Hand</li><li>Hand</li>              <li>hand : body</li></ul></li>
+			<li class="Mouth" ><ul><li>Mouth</li><li>Mouth</li>            <li>mouth : body</li></ul></li>
+			<li class="Nip" ><ul><li>Nip</li><li>Nip</li>                <li>nip : body</li></ul></li>
+			<li class="Pussy" ><ul><li>Pussy</li><li>Pussy</li>            <li>pussy : body</li></ul></li>
+			<li class="Thigh" ><ul><li>Thigh</li><li>Thigh</li>            <li>thigh : body</li></ul></li>
+			<li class="Throat" ><ul><li>Throat</li><li>Throat</li>          <li>throat : body</li></ul></li>
+			<li class="Tit" ><ul><li>Tit</li><li>Tit</li>                <li>tit : body</li></ul></li>
+			<li class="Tongue" ><ul><li>Tongue</li><li>Tongue</li>          <li>tongue : body</li></ul></li>			
+			<li class="©" ><ul><li>©</li><li>©</li>                    <li>© : origin</li></ul></li>
+			<li class="AI" ><ul><li>AI</li><li>AI</li>                  <li>ai : meta</li></ul></li>
+			<li class="NotAI" ><ul><li>NotAI</li><li>NotAI</li>            <li>not_ai : meta</li></ul></li>
+			<li class="Anim" ><ul><li>Anim</li><li>Anim</li>              <li>anim : meta</li></ul></li>
+			<li class="ArtStyle" ><ul><li>ArtStyle</li><li>ArtStyle</li>      <li>art_style : meta</li></ul></li>
+			<li class="Event" ><ul><li>Event</li><li>Event</li>            <li>event : meta</li></ul></li>
+			<li class="NotR18" ><ul><li>NotR18</li><li>NotR18</li>                <li>not_r18 : meta</li></ul></li>			
+			<li class="Anal" ><ul><li>Anal</li><li>Anal</li>              <li>anal : fetish</li></ul></li>
+			<li class="Beast" ><ul><li>Beast</li><li>Beast</li>            <li>beast : person</li></ul></li>
+			<li class="Body" ><ul><li>Body</li><li>Body</li>              <li>body : person</li></ul></li>
+			<li class="Bond" ><ul><li>Bond</li><li>Bond</li>              <li>bond : fetish</li></ul></li>
+			<li class="Chubby" ><ul><li>Chubby</li><li>Chubby</li>          <li>chubby : person</li></ul></li>
+			<li class="Condom" ><ul><li>Condom</li><li>Condom</li>          <li>condom : fetish</li></ul></li>
+			<li class="Costume" ><ul><li>Costume</li><li>Costume</li>        <li>costume : person</li></ul></li>
+			<li class="Cum" ><ul><li>Cum</li><li>Cum</li>                <li>cum : fetish</li></ul></li>
+			<li class="Expose" ><ul><li>Expose</li><li>Expose</li>          <li>expose : fetish</li></ul></li>
+			<li class="Fantasy" ><ul><li>Fantasy</li><li>Fantasy</li>        <li>fantasy : person</li></ul></li>
+			<li class="Flat" ><ul><li>Flat</li><li>Flat</li>              <li>flat : person</li></ul></li>
+			<li class="Gear" ><ul><li>Gear</li><li>Gear</li>              <li>gear : fetish</li></ul></li>
+			<li class="Glasses" ><ul><li>Glasses</li><li>Glasses</li>        <li>glasses : person</li></ul></li>
+			<li class="Guro" ><ul><li>Guro</li><li>Guro</li>              <li>guro : fetish</li></ul></li>
+			<li class="Id" ><ul><li>Id</li><li>Id</li>                  <li>id : person</li></ul></li>
+			<li class="Insert" ><ul><li>Insert</li><li>Insert</li>          <li>insert : fetish</li></ul></li>
+			<li class="Loli" ><ul><li>Loli</li><li>Loli</li>              <li>loli : person</li></ul></li>
+			<li class="Lust" ><ul><li>Lust</li><li>Lust</li>              <li>lust : person</li></ul></li>
+			<li class="Mark" ><ul><li>Mark</li><li>Mark</li>              <li>mark : person</li></ul></li>
+			<li class="Mast" ><ul><li>Mast</li><li>Mast</li>              <li>mast : fetish</li></ul></li>
+			<li class="Milk" ><ul><li>Milk</li><li>Milk</li>              <li>milk : fetish</li></ul></li>
+			<li class="NotSolo" ><ul><li>NotSolo</li><li>NotSolo</li>        <li>not_solo : person</li></ul></li>
+			<li class="OC" ><ul><li>OC</li><li>OC</li>                  <li>oc : origin</li></ul></li>
+			<li class="Oil" ><ul><li>Oil</li><li>Oil</li>                <li>oil : fetish</li></ul></li>
+			<li class="Open" ><ul><li>Open</li><li>Open</li>              <li>open : person</li></ul></li>
+			<li class="Pet" ><ul><li>Pet</li><li>Pet</li>                <li>pet : fetish</li></ul></li>
+			<li class="Pierc" ><ul><li>Pierc</li><li>Pierc</li>            <li>pierc : fetish</li></ul></li>
+			<li class="PoV" ><ul><li>PoV</li><li>PoV</li>                <li>pov : fetish</li></ul></li>
+			<li class="Ryona" ><ul><li>Ryona</li><li>Ryona</li>            <li>ryona : fetish</li></ul></li>
+			<li class="Sca" ><ul><li>Sca</li><li>Sca</li>                <li>sca : fetish</li></ul></li>
+			<li class="Sex" ><ul><li>Sex</li><li>Sex</li>                <li>sex : fetish</li></ul></li>
+			<li class="SM" ><ul><li>SM</li><li>SM</li>                  <li>sm : fetish</li></ul></li>
+			<li class="Swim" ><ul><li>Swim</li><li>Swim</li>              <li>swim : fetish</li></ul></li>
+			<li class="Tan" ><ul><li>Tan</li><li>Tan</li>                <li>tan : person</li></ul></li>
+			<li class="TM" ><ul><li>TM</li><li>TM</li>                  <li>tm : origin</li></ul></li>
+			<li class="Toilet" ><ul><li>Toilet</li><li>Toilet</li>          <li>toilet : setting</li></ul></li>
+			<li class="Toy" ><ul><li>Toy</li><li>Toy</li>                <li>toy : fetish</li></ul></li>
+			<li class="Type" ><ul><li>Type</li><li>Type</li>              <li>type : person</li></ul></li>
+			<li class="Underw" ><ul><li>Underw</li><li>Underw</li>          <li>underwear : fetish</li></ul></li>
+			<li class="Uro" ><ul><li>Uro</li><li>Uro</li>                <li>uro : fetish</li></ul></li>
+			<li class="Wear" ><ul><li>Wear</li><li>Wear</li>              <li>wear : person</li></ul></li>
+			<li class="Wet" ><ul><li>Wet</li><li>Wet</li>                <li>wet : person</li></ul></li>
+			<li class="Yuri" ><ul><li>Yuri</li><li>Yuri</li>              <li>yuri : person</li></ul></li>
+		</ul>
+	</div>
+</body>
+</html>
