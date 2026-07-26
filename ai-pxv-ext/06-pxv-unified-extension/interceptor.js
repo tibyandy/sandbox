@@ -16,7 +16,7 @@ console.log('[PXV] interceptor.js');
 
     // Verifica se a URL aponta para o domínio do Pixiv
     if (!(typeof url === 'string' && url.startsWith('/'))) {
-      PXV.log('[PXV.fetch] - skip', url)
+      // PXV.log('[PXV.fetch] - skip', url)
       return response;
     }
 
@@ -37,7 +37,7 @@ console.log('[PXV] interceptor.js');
         responseBody: responseBody,
         httpStatus: response.status
       }
-      PXV.log('[PXV.fetch] - PXV.FetchResults <--', url, response.status, responseBody)
+      // PXV.log('[PXV.fetch] - PXV.FetchResults <--', url, response.status, responseBody)
 
       PXV.FetchResults.push(result);
       const works = responseBody?.body?.works

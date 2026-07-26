@@ -62,3 +62,7 @@ div:has(> .crx_bookmarks_grid) {
     width: auto;
 }
 */
+
+.crx_work_tags { padding: 0; font-size: 9px; letter-spacing: -0.05ch }
+.crx_work_tags .crx_en { color: #da6; }
+.crx_work_tags .crx_ja { color:rgb(61, 118, 153) }

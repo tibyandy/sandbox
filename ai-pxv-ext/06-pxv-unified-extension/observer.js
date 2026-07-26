@@ -8,18 +8,21 @@ console.log('[PXV] observer.js');
     if (illustData) {
       illustData.domParent = targetParent;
       illustData.domLi = targetLi;
-      if (!targetLi.querySelector('.crx_work_tags')) {
+      if (!targetLi?.querySelector('.crx_work_tags')) {
         targetLi.classList.add('crx_work_thumbnail');
         // PXV.log("[PXV.observer] - assignThumbData add:crx_work_thumbnail", ++count, '-', illustId, (illustData ? (illustData.alt || illustData) : 'UNKNOWN'));
         const el = document.createElement('ul');
         el.className = 'crx_work_tags';
-        el.innerHTML = PXV.WorkResults[illustId].tags.filter(t => t != ('R-18') && (t != 'R-18G')).map(t => `<li>${t}`).join('');
+        el.innerHTML = PXV.WorkResults[illustId].tags.filter(t => t != ('R-18') && (t != 'R-18G')).map(t => {
+          const tags = PXV?.Tags[t[0]]?.[t] || ['?']
+          return `<li class="crx_tag_entry">${!tags[1] ? '' : ('<span class="crx_class">&gt;' + tags.slice(1).join('>') + '</span>')} <span class="crx_en">${tags[0]}</span> <span class="crx_ja">#${t}</span>`
+        }).join('');
         targetLi.append(el);
       } else {
         PXV.log("[PXV.observer] - assignThumbData add:crx_work_thumbnail já executado para essa img");
       }
     } else {
-      PXV.error("[PXV.observer] - assignThumbData - Dados não encontrados: #" + illustId, PXV.ex = targetParent);
+      PXV.log("[PXV.observer] - assignThumbData - Dados não encontrados: #" + illustId, PXV.ex = targetParent);
     }
   }
 
