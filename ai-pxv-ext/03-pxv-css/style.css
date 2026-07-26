@@ -29,33 +29,62 @@ div:has( > div[style*="height: 60px"]:empty) { display: none }
 
 /* Work Thumbnail */
 ul:has(.crx_work_thumbnail) {
-    width: calc(250px * 6) !important;
-    margin-left: calc(-22px * 6);
+    width: calc((33vmin + 4px) * 6) !important;
+    margin-left: -200px;
+}
+.crx_work_thumbnail > div > div:nth-child(2) {
+  a { color: #ff88; }
+  a:visited { color: #dca8; }
+}
+.crx_work_thumbnail a { color: #ff8; }
+.crx_work_thumbnail a:visited { color: #dca; }
+.crx_work_thumbnail:hover a { color: #fff !important; }
+
+.crx_work_thumbnail > div > div:nth-child(2) {
+    z-index: 2;
+    position: absolute;
+    margin-top: -6.5ch;
+    left: 4px;
+    right: 4px;
+    text-shadow: 0 0 1px, -1px 1px 0 #000, 0 1px 1px #000, 1px 1px 0 #000, 1px 1px 1px #000, 1px 1px 6px #0006, 1px 1px 5px #0006, 1px 1px 4px #0006, 1px 1px 3px #0006;
+    font-weight: 400;
+}
+.crx_work_thumbnail > div > div:nth-child(3) {
+    z-index: 2;
+    position: absolute;
+    margin-top: -3.75ch;
+    left: 4px;
+    right: 4px;
+    text-shadow: 0 0 1px, -1px 1px 0 #000, 0 1px 1px #000, 1px 1px 0 #000, 1px 1px 1px #000, 1px 1px 6px #0006, 1px 1px 5px #0006, 1px 1px 4px #0006, 1px 1px 3px #0006;
 }
 .crx_work_thumbnail {
-    width: 250px;
+    width: 33vmin;
     position: relative;
-    margin: 12px 0 12px 0;
+    margin: 4px 4px 0 0;
     position: relative;
 }
 .crx_work_thumbnail > div  {
-    width: 244px;
+    width: 33vmin;
 }
 .crx_work_thumbnail div[width] {
-    width: 184px;
+    width: 33vmin;
+    height: 33vmin;
     padding-right: 54px;
 }
 .crx_work_tags {
     position: absolute;
-    right: 12px;
-    top: 0;
+    right: 4px;
+    top: 4px;
     list-style: none;
     padding: 0;
     line-height: 13px;
     font-size: 11px;
     text-align: right;
     color: #fff;
-    text-shadow: 0 0 2px #000, 0 0 1px #000, 0 0 1px #fff, 0 0 1px #fff;
+    text-shadow: 0 0 2px #000, 0 0 1px #000, 0 0 2px #000, 0 0 1px #000, 0 0 1px #fff, 0 0 1px #fff;
+}
+.crx_work_tags:hover {
+    text-shadow: 0 0 2px #000, 0 0 1px #000, 0 0 2px #000, 0 0 1px #000, 0 0 3px #000, 0 0 4px #000;
 }
 a:hover .crx_work_tags {
 	opacity: 0;

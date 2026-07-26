@@ -1,0 +1,48 @@
+html, body {
+  scrollbar-gutter: stable;
+}
+
+/* Stretch Sidebar */
+.crx_sidebar { align-self: stretch; /* background: #f0f */ }
+
+/* Tags to the right */
+.crx_tags li { display: list-item }
+.crx_tags li > span { display: flex; flex-direction: row-reverse; justify-content: flex-end; white-space: nowrap; gap: 4px; }
+.crx_tags li > span > span { letter-spacing: 0; margin: 0 }
+.crx_tags li > span > span:nth-last-child(1) > a { color: #da6; }
+.crx_tags li > span > span:nth-last-child(1) > a:visited { color: #976; }
+.crx_tags li > span > span:nth-last-child(1) > a:hover { color: #fff }
+.crx_tags li > span > span:nth-child(1) > a:before { font-weight: bold }
+
+/* Top Pixiv premium banner on illust pages */
+div:has(button):has(iframe) + div:has(div > iframe):has( + * main) { border: solid 1px #fff; display: none !important; }
+
+/* Top Pixiv premium banner on main page */
+#__premium_banner { display: none }
+
+/* Top Pixiv premium banner on user pages */
+div:not(:has(form)):has(div > iframe):has( + .__top_side_menu_body) { display: none }
+
+/* Top Pixiv premium banner on novel pages */
+div:has( > div[style*="height: 60px"]:empty) { display: none }
+
+/* Show all and Like moved on sidebar */
+.crx_like_fav_bar > div { background: rgba(0, 0, 0, 0.92); }
+.crx_like_fav_bar button > div:first-child { background: rgba(0, 0, 0, 0.92); }
+.crx_like_fav_bar > div[style] { transform: none !important; }
+
+/* Work Thumbnail */
+div:has(> .crx_bookmarks_grid) {
+  position: relative;
+  margin-left: calc(50% - 50vw);
+  width: 100vw;
+  box-sizing: border-box; /* Essencial para o padding não somar na largura */
+}
+.crx_bookmarks_grid {
+    width: 100vw;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    margin: 0;
+}
+.crx_bookmarks_grid li { margin: 0; padding: 0; width: 100%; overflow: hidden }
