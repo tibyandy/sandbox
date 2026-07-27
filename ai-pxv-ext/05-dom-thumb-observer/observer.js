@@ -15,17 +15,19 @@
       const illustData = window?.WorkResults?.[illustId]
       if (illustData) {
         illustData.domParent = targetParent
-        illustData.domLi = targetLi
         console.log("Ilustração #" + ++count, illustId, illustData);
-        if (!targetLi.querySelector('.crx_work_tags')) {
-            targetLi.classList.add('crx_work_thumbnail')
-            console.log('add')
-            const el = document.createElement('ul')
-            el.className = 'crx_work_tags'
-            el.innerHTML = WorkResults[illustId].tags.filter(t => t != ('R-18') && (t != 'R-18G')).map(t => `<li>${t}`).join('')
-            targetLi.append(el)
-        } else {
-            console.log('already added')
+        illustData.domLi = targetLi
+        if (targetLi) {
+          if (!targetLi.querySelector('.crx_work_tags')) {
+              targetLi?.classList.add('crx_work_thumbnail')
+              console.log('add')
+              const el = document.createElement('ul')
+              el.className = 'crx_work_tags'
+              el.innerHTML = WorkResults[illustId].tags.filter(t => t != ('R-18') && (t != 'R-18G')).map(t => `<li>${t}`).join('')
+              targetLi?.append(el)
+          } else {
+              console.log('already added')
+          }
         }
       } else {
         console.log("Dados da ilustração não encontrados:", illustId, window.ex = targetParent);

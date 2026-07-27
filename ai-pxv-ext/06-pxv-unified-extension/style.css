@@ -66,3 +66,42 @@ div:has(> .crx_bookmarks_grid) {
 .crx_work_tags { padding: 0; font-size: 9px; letter-spacing: -0.05ch }
 .crx_work_tags .crx_en { color: #da6; }
 .crx_work_tags .crx_ja { color:rgb(61, 118, 153) }
+
+.è { outline: ridge #0ff4 4px; }
+
+body::before { position: fixed; right: 0; top: 0; z-index: 9999; -webkit-text-stroke: 3px #00000088; paint-order: stroke fill; text-shadow: 0 0 2px #000; letter-spacing: 0.5px; color: #fff; font-size: 10px; padding: 2px }
+body:not(.ò) { content: '?' }
+.ò._art._slideshow::before { content: 'art.slideshow' }
+.ò._art._cover::before { content: 'art.cover' }
+.ò._artfav._detail::before { content: 'artfav.detail' }
+.ò._artfav._edit::before { content: 'artfav.edit' }
+.ò._my._hist::before { content: 'my.hist' }
+.ò._my._dash::before { content: 'my.dash' }
+.ò._myfol._cols::before { content: 'myfol.cols' }
+.ò._myfol._works::before { content: 'myfol.works' }
+.ò._mypix._works::before { content: 'mypix.works' }
+.ò._mywatch._mangas::before { content: 'mywatch.mangas' }
+.ò._mywatch._novels::before { content: 'mywatch.novels' }
+.ò._recent._works::before { content: 'recent.works' }
+.ò._user._favs._cols::before { content: 'user.favs.cols' }
+.ò._user._favs._novels::before { content: 'user.favs.novels' }
+.ò._user._favs::before { content: 'user.favs' }
+.ò._user._fols::before { content: 'user.fols' }
+.ò._user._illusts::before { content: 'user.illusts' }
+.ò._user._mangas::before { content: 'user.mangas' }
+.ò._user._reqs::before { content: 'user.reqs' }
+.ò._user._series::before { content: 'user.series' }
+.ò._user._works::before { content: 'user.works' }
+.ò._user._home::before { content: 'user.home' }
+.ò._search._illusts::before { content: 'search.illusts' }
+.ò._search._mangas::before { content: 'search.mangas' }
+.ò._search._works::before { content: 'search.works' }
+.ò._search._tags::before { content: 'search.tags' }
+.ò._search._words::before { content: 'search.words' }
+.ò._top._discovery::before { content: 'top.discovery' }
+.ò._top._novels::before { content: 'top.novels' }
+.ò._top._recom._illusts::before { content: 'top.recom.illusts' }
+.ò._top._recom._illusts::before { content: 'top.recom.illusts' }
+.ò._top._recom._mangas::before { content: 'top.recom.mangas' }
+.ò._top._recom._mangas::before { content: 'top.recom.mangas' }
+.ò._top._home::before { content: 'top.home' }
