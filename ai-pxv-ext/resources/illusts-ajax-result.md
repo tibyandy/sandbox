@@ -1,0 +1,691 @@
+# View Multiple User Illusts Result
+- URL: https://www.pixiv.net/ajax/user/92809474/illusts?ids%5B%5D=145037392&ids%5B%5D=145000989&ids%5B%5D=144963331&ids%5B%5D=144926795&ids%5B%5D=144886384&ids%5B%5D=144842117&ids%5B%5D=144800282&ids%5B%5D=144763418&ids%5B%5D=144726349&ids%5B%5D=144689521&ids%5B%5D=144652226&ids%5B%5D=144484472&ids%5B%5D=144444265&ids%5B%5D=144399094&ids%5B%5D=144352946&ids%5B%5D=144321731&ids%5B%5D=144262009&ids%5B%5D=144217281&lang=en
+
+```sh
+curl --url 'https://www.pixiv.net/ajax/user/92809474/illusts?ids%5B%5D=145037392&ids%5B%5D=145000989&ids%5B%5D=144963331&ids%5B%5D=144926795&ids%5B%5D=144886384&ids%5B%5D=144842117&ids%5B%5D=144800282&ids%5B%5D=144763418&ids%5B%5D=144726349&ids%5B%5D=144689521&ids%5B%5D=144652226&ids%5B%5D=144484472&ids%5B%5D=144444265&ids%5B%5D=144399094&ids%5B%5D=144352946&ids%5B%5D=144321731&ids%5B%5D=144262009&ids%5B%5D=144217281&lang=en' \
+  -H 'accept: application/json' \
+  -H 'accept-language: en-US,en;q=0.9,pt-BR;q=0.8,pt;q=0.7' \
+  -H 'baggage: sentry-environment=production,sentry-public_key=1bce6ddb909da69b0efb68a4785c448c,sentry-trace_id=bbf70f4417ff4e9e9ba60a0b9510ae52,sentry-sampled=false,sentry-sample_rand=0.9902083407406301,sentry-sample_rate=0.0001' \
+  -b 'p_ab_d_id=1042341718; privacy_policy_notification=0; b_type=1; privacy_policy_agreement=7; c_type=43; auto_view_enabled=1; PHPSESSID=5986322_gNJBV7zkpdCzMXkusrclugBajhFUyCoh; _ga_MZ1NL4PHH0=GS2.1.s1776547199$o2$g0$t1776547205$j54$l0$h0; login_ever=yes; _gcl_au=1.1.47121536.1778959046; first_visit_datetime=2026-05-22%2011%3A54%3A13; cto_bundle=LZMwdl96TlZNZURSdE9xMllpSllPMHpFZm9UYXRlMG1HV0x2cURqbiUyRkhaZ1I4RGQ5eiUyQjViVjhvcUJoYmRjRThrT1hySkExU0xseGE2TzJ1bzVwZlBJN293dXZDektMTFhBbVpIYkY1MlFlJTJGUnR4T1NrbHJwckZUUjNQQkhrRDAlMkJScFF1OG5UJTJCY2Z4NEp2Q2FBbk5WWVd5eHZ3JTNEJTNE; cto_bundle=wHjAhF96TlZNZURSdE9xMllpSllPMHpFZm9RNVpPQ1ElMkZhRHIlMkY3M0pDcHhIQVF1RjZ0V2NUUTVnSG03aXh2dCUyRjBYdzVlS3klMkZSMWowM20yNnJvaDN5RlF5Rnh3Qm1HcTFMZ2d4MEhJUlhMS2UlMkZDcTdmclBkdVEzR3Y1RllZNW5aOGxMQlNpRjhOeWx3TVJFS3ROVDZidEdJZiUyQkElM0QlM0Q; _ga_75BBYNYN9J=deleted; FCCDCF=%5Bnull%2Cnull%2Cnull%2Cnull%2Cnull%2Cnull%2C%5B%5B32%2C%22%5B%5C%229c70617b-2209-4d1b-9a51-667b189cb42e%5C%22%2C%5B1762007640%2C497000000%5D%5D%22%5D%5D%5D; FCNEC=%5B%5B%22AKsRol-btFJc7Wbv1UFhXuF0R75_KhJ-JQbY0VZ04q1xe4qGXS2Vrl9RPE7gXk278zDG0DkQyqY5PWYnvzeVL-nGuxxVKmpD7_bc98YRR_WCQfWE6_NzSn9CJr0nUoq_p1wU-gA6IcsSRC7C_UFdeINkP3x-R8QGew%3D%3D%22%5D%5D; _ga_3WKBFJLFCP=GS2.1.s1781053542$o2$g1$t1781054607$j32$l0$h0; _ga_75BBYNYN9J=deleted; __utmz=235335808.1781455677.100.25.utmcsr=dic.pixiv.net|utmccn=(referral)|utmcmd=referral|utmcct=/; __utmv=235335808.|2=login%20ever=yes=1^3=plan=normal=1^5=gender=male=1^9=p_ab_id=1=1^10=p_ab_id_2=0=1^20=webp_available=yes=1; first_visit_datetime_pc=2026-08-09%2008%3A32%3A12; a_type=1; p_ab_id=5; p_ab_id_2=7; __utmc=235335808; yuid_b=ECIDmAA; default_service_is_touch=no; _gid=GA1.2.473271237.1786310952; sharedid=5b5a6c12-b6f6-4637-b324-d21b58286034; sharedid_cst=znv0HA%3D%3D; __utma=235335808.1043909785.1760059042.1786310733.1786294290.124; _ga_ZQEKG3EF2C=GS2.1.s1786314447$o31$g1$t1786318163$j60$l0$h0; __utmt=1; _ga=GA1.1.1043909785.1760059042; cf_clearance=M5jZqNjfvpZ70e1RVxc8YJh67ReBRo2FM3Xc7pRiMEU-1786318769-1.2.1.1-5dSnoEeeEY6_oQHRwUBmtK_SRCJoA8tfCz04cwDl1NNEVHMPhQEX2KWZAK47ltMTB_zj3hwTkvskl0J9sJS0QfxCIHKD8aDC00_qDg7y2pitgPfARkag6wtJKda5N5O43iI18eH1yZebi1wPPlSWVkZanMDlNCPgeJLmlct2S9s1xJIuoLXScgNX7ya0uhBoIY4DgcdX5csfWwWnKi2cTkANgubHvbl1XXPEw9HoCE8NC5SzXfm64rg.3d0ytiKfTrGjdzy8PCC.00rwz80Kz72jsh5RltTRF6Z6SiHSXBbM5OaSXwOLfO68u7UJdjSuSPOTwsU8OsGD4.bI.3qYjmWJEdfxC0xRX.G6LAGpUdYiI89Lw_I6Q1jIQE1e0ZTVFEZhbofkX3hdKsQOSNZNsCJSetI_oC0Oyy4w9TfTnG_FakV3q1Oqn6CLyFZBFA5Gm1w1P1qTQ05s4RV_PDtgAs4j8u6eI9BY4MYQRDoxaYj.MOI0rslVeAEfQLDf3jvk7DJry8cqU4llJjEZCdcQI2POihzU92o2hVpKSq0XUVg; __cf_bm=5iawPr9ibmEHN97XpW2y4g9ueZ1ohiOw_YadVOjoC6g-1786318769.7314541-1.0.1.1-fpnVNT1DFt4hOMWK2K0G62Naxg8FbbWPZWx1xyKahu7dw3BQLsvJg4aYamSxEgMI_ZeKR_ck0TxPq53X8K60GrNmqT1GRyH0dLGtYYf3zcSqdve4660LGaRoqSFrw38XTkXmNdNr21zmDSYVr9zU.Q; __utmb=235335808.64.10.1786294290; _ga_75BBYNYN9J=GS2.1.s1786313732$o106$g1$t1786318817$j60$l0$h0' \
+  -H 'priority: u=1, i' \
+  -H 'referer: https://www.pixiv.net/en/artworks/144567866' \
+  -H 'sec-ch-ua: "Not=A?Brand";v="99", "Brave";v="151", "Chromium";v="151"' \
+  -H 'sec-ch-ua-mobile: ?0' \
+  -H 'sec-ch-ua-platform: "Windows"' \
+  -H 'sec-fetch-dest: empty' \
+  -H 'sec-fetch-mode: cors' \
+  -H 'sec-fetch-site: same-origin' \
+  -H 'sentry-trace: bbf70f4417ff4e9e9ba60a0b9510ae52-81ad2056d6442850-0' \
+  -H 'user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36' \
+  -H 'x-user-id: 5986322'
+```
+
+```json
+ {
+  "error": false,
+  "message": "",
+  "body": {
+    "144217281": {
+      "id": "144217281",
+      "title": "無限メイドお出迎えハーレム",
+      "illustType": 0,
+      "xRestrict": 1,
+      "restrict": 0,
+      "sl": 6,
+      "url": "https://i.pximg.net/c/250x250_80_a2/img-master/img/2026/05/01/18/00/02/144217281_p0_square1200.jpg",
+      "description": "",
+      "tags": [
+        "R-18",
+        "ハーレム",
+        "全裸",
+        "全裸群衆",
+        "nsfw"
+      ],
+      "userId": "92809474",
+      "userName": "果宝@桃満界AIart",
+      "width": 2416,
+      "height": 1376,
+      "pageCount": 1,
+      "isBookmarkable": true,
+      "bookmarkData": null,
+      "alt": "nsfw / 無限メイドお出迎えハーレム / May 1st, 2026",
+      "titleCaptionTranslation": {
+        "workTitle": null,
+        "workCaption": null
+      },
+      "createDate": "2026-05-01T18:00:02+09:00",
+      "updateDate": "2026-05-01T18:00:02+09:00",
+      "isUnlisted": false,
+      "isMasked": false,
+      "aiType": 2,
+      "visibilityScope": 0,
+      "profileImageUrl": "https://i.pximg.net/user-profile/img/2023/05/25/00/44/00/24461786_ee9f655c5adc788056df614b1de0c246_50.jpg"
+    },
+    "144262009": {
+      "id": "144262009",
+      "title": "ハーレム抱き付きご奉仕",
+      "illustType": 1,
+      "xRestrict": 1,
+      "restrict": 0,
+      "sl": 6,
+      "url": "https://i.pximg.net/c/250x250_80_a2/custom-thumb/img/2026/05/02/18/33/02/144262009_p0_custom1200.jpg",
+      "description": "",
+      "tags": [
+        "R-18",
+        "漫画",
+        "nsfw",
+        "ハーレム",
+        "セリフ付き",
+        "全裸",
+        "全裸群衆"
+      ],
+      "userId": "92809474",
+      "userName": "果宝@桃満界AIart",
+      "width": 2416,
+      "height": 1376,
+      "pageCount": 2,
+      "isBookmarkable": true,
+      "bookmarkData": null,
+      "alt": "nsfw / ハーレム抱き付きご奉仕 / May 2nd, 2026",
+      "titleCaptionTranslation": {
+        "workTitle": null,
+        "workCaption": null
+      },
+      "createDate": "2026-05-02T18:00:13+09:00",
+      "updateDate": "2026-05-02T18:33:02+09:00",
+      "isUnlisted": false,
+      "isMasked": false,
+      "aiType": 2,
+      "visibilityScope": 0,
+      "profileImageUrl": "https://i.pximg.net/user-profile/img/2023/05/25/00/44/00/24461786_ee9f655c5adc788056df614b1de0c246_50.jpg"
+    },
+    "144321731": {
+      "id": "144321731",
+      "title": "汗だく公園ハーレム",
+      "illustType": 0,
+      "xRestrict": 1,
+      "restrict": 0,
+      "sl": 6,
+      "url": "https://i.pximg.net/c/250x250_80_a2/img-master/img/2026/05/03/23/00/05/144321731_p0_square1200.jpg",
+      "description": "",
+      "tags": [
+        "R-18",
+        "nsfw",
+        "ハーレム",
+        "全裸",
+        "全裸群衆",
+        "アヘ顔"
+      ],
+      "userId": "92809474",
+      "userName": "果宝@桃満界AIart",
+      "width": 2416,
+      "height": 1376,
+      "pageCount": 1,
+      "isBookmarkable": true,
+      "bookmarkData": null,
+      "alt": "nsfw / 汗だく公園ハーレム / May 3rd, 2026",
+      "titleCaptionTranslation": {
+        "workTitle": null,
+        "workCaption": null
+      },
+      "createDate": "2026-05-03T23:00:05+09:00",
+      "updateDate": "2026-05-03T23:00:05+09:00",
+      "isUnlisted": false,
+      "isMasked": false,
+      "aiType": 2,
+      "visibilityScope": 0,
+      "profileImageUrl": "https://i.pximg.net/user-profile/img/2023/05/25/00/44/00/24461786_ee9f655c5adc788056df614b1de0c246_50.jpg"
+    },
+    "144352946": {
+      "id": "144352946",
+      "title": "夕方ハーレムベッド2",
+      "illustType": 0,
+      "xRestrict": 1,
+      "restrict": 0,
+      "sl": 6,
+      "url": "https://i.pximg.net/c/250x250_80_a2/img-master/img/2026/05/04/18/00/01/144352946_p0_square1200.jpg",
+      "description": "",
+      "tags": [
+        "R-18",
+        "ハーレム",
+        "nsfw",
+        "全裸",
+        "全裸群衆"
+      ],
+      "userId": "92809474",
+      "userName": "果宝@桃満界AIart",
+      "width": 2416,
+      "height": 1376,
+      "pageCount": 1,
+      "isBookmarkable": true,
+      "bookmarkData": null,
+      "alt": "nsfw / 夕方ハーレムベッド2 / May 4th, 2026",
+      "titleCaptionTranslation": {
+        "workTitle": null,
+        "workCaption": null
+      },
+      "createDate": "2026-05-04T18:00:01+09:00",
+      "updateDate": "2026-05-04T18:00:01+09:00",
+      "isUnlisted": false,
+      "isMasked": false,
+      "aiType": 2,
+      "visibilityScope": 0,
+      "profileImageUrl": "https://i.pximg.net/user-profile/img/2023/05/25/00/44/00/24461786_ee9f655c5adc788056df614b1de0c246_50.jpg"
+    },
+    "144399094": {
+      "id": "144399094",
+      "title": "リビングガン突きハーレム",
+      "illustType": 1,
+      "xRestrict": 1,
+      "restrict": 0,
+      "sl": 6,
+      "url": "https://i.pximg.net/c/250x250_80_a2/custom-thumb/img/2026/05/05/18/00/16/144399094_p0_custom1200.jpg",
+      "description": "",
+      "tags": [
+        "R-18",
+        "漫画",
+        "nsfw",
+        "ハーレム",
+        "セリフ付き",
+        "全裸",
+        "全裸群衆"
+      ],
+      "userId": "92809474",
+      "userName": "果宝@桃満界AIart",
+      "width": 2416,
+      "height": 1376,
+      "pageCount": 2,
+      "isBookmarkable": true,
+      "bookmarkData": null,
+      "alt": "nsfw / リビングガン突きハーレム / May 5th, 2026",
+      "titleCaptionTranslation": {
+        "workTitle": null,
+        "workCaption": null
+      },
+      "createDate": "2026-05-05T18:00:16+09:00",
+      "updateDate": "2026-05-05T18:00:16+09:00",
+      "isUnlisted": false,
+      "isMasked": false,
+      "aiType": 2,
+      "visibilityScope": 0,
+      "profileImageUrl": "https://i.pximg.net/user-profile/img/2023/05/25/00/44/00/24461786_ee9f655c5adc788056df614b1de0c246_50.jpg"
+    },
+    "144444265": {
+      "id": "144444265",
+      "title": "布団密集ハーレム",
+      "illustType": 0,
+      "xRestrict": 1,
+      "restrict": 0,
+      "sl": 6,
+      "url": "https://i.pximg.net/c/250x250_80_a2/img-master/img/2026/05/06/18/00/01/144444265_p0_square1200.jpg",
+      "description": "",
+      "tags": [
+        "R-18",
+        "ハーレム",
+        "nsfw",
+        "全裸",
+        "全裸群衆"
+      ],
+      "userId": "92809474",
+      "userName": "果宝@桃満界AIart",
+      "width": 2416,
+      "height": 1376,
+      "pageCount": 1,
+      "isBookmarkable": true,
+      "bookmarkData": null,
+      "alt": "nsfw / 布団密集ハーレム / May 6th, 2026",
+      "titleCaptionTranslation": {
+        "workTitle": null,
+        "workCaption": null
+      },
+      "createDate": "2026-05-06T18:00:01+09:00",
+      "updateDate": "2026-05-06T18:00:01+09:00",
+      "isUnlisted": false,
+      "isMasked": false,
+      "aiType": 2,
+      "visibilityScope": 0,
+      "profileImageUrl": "https://i.pximg.net/user-profile/img/2023/05/25/00/44/00/24461786_ee9f655c5adc788056df614b1de0c246_50.jpg"
+    },
+    "144484472": {
+      "id": "144484472",
+      "title": "ハーレムセックスショップ",
+      "illustType": 0,
+      "xRestrict": 1,
+      "restrict": 0,
+      "sl": 6,
+      "url": "https://i.pximg.net/c/250x250_80_a2/img-master/img/2026/05/07/18/00/01/144484472_p0_square1200.jpg",
+      "description": "",
+      "tags": [
+        "R-18",
+        "nsfw",
+        "ハーレム",
+        "全裸",
+        "全裸群衆"
+      ],
+      "userId": "92809474",
+      "userName": "果宝@桃満界AIart",
+      "width": 2416,
+      "height": 1376,
+      "pageCount": 1,
+      "isBookmarkable": true,
+      "bookmarkData": null,
+      "alt": "nsfw / ハーレムセックスショップ / May 7th, 2026",
+      "titleCaptionTranslation": {
+        "workTitle": null,
+        "workCaption": null
+      },
+      "createDate": "2026-05-07T18:00:01+09:00",
+      "updateDate": "2026-05-07T18:00:01+09:00",
+      "isUnlisted": false,
+      "isMasked": false,
+      "aiType": 2,
+      "visibilityScope": 0,
+      "profileImageUrl": "https://i.pximg.net/user-profile/img/2023/05/25/00/44/00/24461786_ee9f655c5adc788056df614b1de0c246_50.jpg"
+    },
+    "144652226": {
+      "id": "144652226",
+      "title": "ネグリジェくぱぁハーレム2(5枚)",
+      "illustType": 0,
+      "xRestrict": 1,
+      "restrict": 0,
+      "sl": 6,
+      "url": "https://i.pximg.net/c/250x250_80_a2/img-master/img/2026/05/11/18/00/33/144652226_p0_square1200.jpg",
+      "description": "",
+      "tags": [
+        "R-18",
+        "ハーレム",
+        "nsfw",
+        "ネグリジェ",
+        "尻"
+      ],
+      "userId": "92809474",
+      "userName": "果宝@桃満界AIart",
+      "width": 2416,
+      "height": 1376,
+      "pageCount": 5,
+      "isBookmarkable": true,
+      "bookmarkData": null,
+      "alt": "nsfw / ネグリジェくぱぁハーレム2(5枚) / May 11th, 2026",
+      "titleCaptionTranslation": {
+        "workTitle": null,
+        "workCaption": null
+      },
+      "createDate": "2026-05-11T18:00:33+09:00",
+      "updateDate": "2026-05-11T18:00:33+09:00",
+      "isUnlisted": false,
+      "isMasked": false,
+      "aiType": 2,
+      "visibilityScope": 0,
+      "profileImageUrl": "https://i.pximg.net/user-profile/img/2023/05/25/00/44/00/24461786_ee9f655c5adc788056df614b1de0c246_50.jpg"
+    },
+    "144689521": {
+      "id": "144689521",
+      "title": "ハーレム肉便女セックス2(5枚)",
+      "illustType": 0,
+      "xRestrict": 1,
+      "restrict": 0,
+      "sl": 6,
+      "url": "https://i.pximg.net/c/250x250_80_a2/img-master/img/2026/05/12/18/00/30/144689521_p0_square1200.jpg",
+      "description": "",
+      "tags": [
+        "R-18",
+        "nsfw",
+        "ハーレム",
+        "全裸",
+        "全裸群衆"
+      ],
+      "userId": "92809474",
+      "userName": "果宝@桃満界AIart",
+      "width": 2416,
+      "height": 1376,
+      "pageCount": 5,
+      "isBookmarkable": true,
+      "bookmarkData": null,
+      "alt": "nsfw / ハーレム肉便女セックス2(5枚) / May 12th, 2026",
+      "titleCaptionTranslation": {
+        "workTitle": null,
+        "workCaption": null
+      },
+      "createDate": "2026-05-12T18:00:30+09:00",
+      "updateDate": "2026-05-12T18:00:30+09:00",
+      "isUnlisted": false,
+      "isMasked": false,
+      "aiType": 2,
+      "visibilityScope": 0,
+      "profileImageUrl": "https://i.pximg.net/user-profile/img/2023/05/25/00/44/00/24461786_ee9f655c5adc788056df614b1de0c246_50.jpg"
+    },
+    "144726349": {
+      "id": "144726349",
+      "title": "ハーレムくぱぁバニー",
+      "illustType": 0,
+      "xRestrict": 1,
+      "restrict": 0,
+      "sl": 6,
+      "url": "https://i.pximg.net/c/250x250_80_a2/img-master/img/2026/05/13/18/00/34/144726349_p0_square1200.jpg",
+      "description": "",
+      "tags": [
+        "R-18",
+        "nsfw",
+        "ハーレム",
+        "バニー",
+        "くぱぁ"
+      ],
+      "userId": "92809474",
+      "userName": "果宝@桃満界AIart",
+      "width": 2416,
+      "height": 1376,
+      "pageCount": 5,
+      "isBookmarkable": true,
+      "bookmarkData": null,
+      "alt": "nsfw / ハーレムくぱぁバニー / May 13th, 2026",
+      "titleCaptionTranslation": {
+        "workTitle": null,
+        "workCaption": null
+      },
+      "createDate": "2026-05-13T18:00:34+09:00",
+      "updateDate": "2026-05-13T18:00:34+09:00",
+      "isUnlisted": false,
+      "isMasked": false,
+      "aiType": 2,
+      "visibilityScope": 0,
+      "profileImageUrl": "https://i.pximg.net/user-profile/img/2023/05/25/00/44/00/24461786_ee9f655c5adc788056df614b1de0c246_50.jpg"
+    },
+    "144763418": {
+      "id": "144763418",
+      "title": "野外ハーレムタウン",
+      "illustType": 0,
+      "xRestrict": 1,
+      "restrict": 0,
+      "sl": 6,
+      "url": "https://i.pximg.net/c/250x250_80_a2/img-master/img/2026/05/14/18/00/05/144763418_p0_square1200.jpg",
+      "description": "",
+      "tags": [
+        "R-18",
+        "nsfw",
+        "ハーレム",
+        "全裸",
+        "全裸群衆"
+      ],
+      "userId": "92809474",
+      "userName": "果宝@桃満界AIart",
+      "width": 3072,
+      "height": 1728,
+      "pageCount": 1,
+      "isBookmarkable": true,
+      "bookmarkData": null,
+      "alt": "nsfw / 野外ハーレムタウン / May 14th, 2026",
+      "titleCaptionTranslation": {
+        "workTitle": null,
+        "workCaption": null
+      },
+      "createDate": "2026-05-14T18:00:05+09:00",
+      "updateDate": "2026-05-14T18:00:05+09:00",
+      "isUnlisted": false,
+      "isMasked": false,
+      "aiType": 2,
+      "visibilityScope": 0,
+      "profileImageUrl": "https://i.pximg.net/user-profile/img/2023/05/25/00/44/00/24461786_ee9f655c5adc788056df614b1de0c246_50.jpg"
+    },
+    "144800282": {
+      "id": "144800282",
+      "title": "無限ハーレム体育館",
+      "illustType": 0,
+      "xRestrict": 1,
+      "restrict": 0,
+      "sl": 6,
+      "url": "https://i.pximg.net/c/250x250_80_a2/img-master/img/2026/05/15/18/00/05/144800282_p0_square1200.jpg",
+      "description": "",
+      "tags": [
+        "R-18",
+        "ハーレム",
+        "nsfw",
+        "全裸",
+        "全裸群衆"
+      ],
+      "userId": "92809474",
+      "userName": "果宝@桃満界AIart",
+      "width": 2416,
+      "height": 1376,
+      "pageCount": 1,
+      "isBookmarkable": true,
+      "bookmarkData": null,
+      "alt": "nsfw / 無限ハーレム体育館 / May 15th, 2026",
+      "titleCaptionTranslation": {
+        "workTitle": null,
+        "workCaption": null
+      },
+      "createDate": "2026-05-15T18:00:05+09:00",
+      "updateDate": "2026-05-15T18:00:05+09:00",
+      "isUnlisted": false,
+      "isMasked": false,
+      "aiType": 2,
+      "visibilityScope": 0,
+      "profileImageUrl": "https://i.pximg.net/user-profile/img/2023/05/25/00/44/00/24461786_ee9f655c5adc788056df614b1de0c246_50.jpg"
+    },
+    "144842117": {
+      "id": "144842117",
+      "title": "メイド騎乗位ハーレム",
+      "illustType": 0,
+      "xRestrict": 1,
+      "restrict": 0,
+      "sl": 6,
+      "url": "https://i.pximg.net/c/250x250_80_a2/img-master/img/2026/05/16/18/00/02/144842117_p0_square1200.jpg",
+      "description": "",
+      "tags": [
+        "R-18",
+        "nsfw",
+        "ハーレム",
+        "全裸",
+        "全裸群衆",
+        "メイド"
+      ],
+      "userId": "92809474",
+      "userName": "果宝@桃満界AIart",
+      "width": 2416,
+      "height": 1376,
+      "pageCount": 1,
+      "isBookmarkable": true,
+      "bookmarkData": null,
+      "alt": "nsfw / メイド騎乗位ハーレム / May 16th, 2026",
+      "titleCaptionTranslation": {
+        "workTitle": null,
+        "workCaption": null
+      },
+      "createDate": "2026-05-16T18:00:02+09:00",
+      "updateDate": "2026-05-16T18:00:02+09:00",
+      "isUnlisted": false,
+      "isMasked": false,
+      "aiType": 2,
+      "visibilityScope": 0,
+      "profileImageUrl": "https://i.pximg.net/user-profile/img/2023/05/25/00/44/00/24461786_ee9f655c5adc788056df614b1de0c246_50.jpg"
+    },
+    "144886384": {
+      "id": "144886384",
+      "title": "ハーレムメイド肉壁回廊5",
+      "illustType": 0,
+      "xRestrict": 1,
+      "restrict": 0,
+      "sl": 6,
+      "url": "https://i.pximg.net/c/250x250_80_a2/img-master/img/2026/05/17/18/00/05/144886384_p0_square1200.jpg",
+      "description": "",
+      "tags": [
+        "R-18",
+        "ハーレム",
+        "nsfw",
+        "制服",
+        "メイド",
+        "ノーパン",
+        "たくし上げ"
+      ],
+      "userId": "92809474",
+      "userName": "果宝@桃満界AIart",
+      "width": 2416,
+      "height": 1376,
+      "pageCount": 1,
+      "isBookmarkable": true,
+      "bookmarkData": null,
+      "alt": "nsfw / ハーレムメイド肉壁回廊5 / May 17th, 2026",
+      "titleCaptionTranslation": {
+        "workTitle": null,
+        "workCaption": null
+      },
+      "createDate": "2026-05-17T18:00:05+09:00",
+      "updateDate": "2026-05-17T18:00:05+09:00",
+      "isUnlisted": false,
+      "isMasked": false,
+      "aiType": 2,
+      "visibilityScope": 0,
+      "profileImageUrl": "https://i.pximg.net/user-profile/img/2023/05/25/00/44/00/24461786_ee9f655c5adc788056df614b1de0c246_50.jpg"
+    },
+    "144926795": {
+      "id": "144926795",
+      "title": "ハーレム催眠教室14",
+      "illustType": 0,
+      "xRestrict": 1,
+      "restrict": 0,
+      "sl": 6,
+      "url": "https://i.pximg.net/c/250x250_80_a2/img-master/img/2026/05/18/18/00/04/144926795_p0_square1200.jpg",
+      "description": "",
+      "tags": [
+        "R-18",
+        "nsfw",
+        "ハーレム",
+        "制服",
+        "ノーパン",
+        "たくし上げ",
+        "催眠"
+      ],
+      "userId": "92809474",
+      "userName": "果宝@桃満界AIart",
+      "width": 2416,
+      "height": 1376,
+      "pageCount": 1,
+      "isBookmarkable": true,
+      "bookmarkData": null,
+      "alt": "nsfw / ハーレム催眠教室14 / May 18th, 2026",
+      "titleCaptionTranslation": {
+        "workTitle": null,
+        "workCaption": null
+      },
+      "createDate": "2026-05-18T18:00:04+09:00",
+      "updateDate": "2026-05-18T18:00:04+09:00",
+      "isUnlisted": false,
+      "isMasked": false,
+      "aiType": 2,
+      "visibilityScope": 0,
+      "profileImageUrl": "https://i.pximg.net/user-profile/img/2023/05/25/00/44/00/24461786_ee9f655c5adc788056df614b1de0c246_50.jpg"
+    },
+    "144963331": {
+      "id": "144963331",
+      "title": "ハーレムパイ振りがに股ダンス8(3枚)",
+      "illustType": 0,
+      "xRestrict": 1,
+      "restrict": 0,
+      "sl": 6,
+      "url": "https://i.pximg.net/c/250x250_80_a2/img-master/img/2026/05/19/18/00/21/144963331_p0_square1200.jpg",
+      "description": "",
+      "tags": [
+        "R-18",
+        "ハーレム",
+        "nsfw",
+        "全裸",
+        "全裸群衆",
+        "おっぱい",
+        "がに股"
+      ],
+      "userId": "92809474",
+      "userName": "果宝@桃満界AIart",
+      "width": 2416,
+      "height": 1376,
+      "pageCount": 3,
+      "isBookmarkable": true,
+      "bookmarkData": null,
+      "alt": "nsfw / ハーレムパイ振りがに股ダンス8(3枚) / May 19th, 2026",
+      "titleCaptionTranslation": {
+        "workTitle": null,
+        "workCaption": null
+      },
+      "createDate": "2026-05-19T18:00:21+09:00",
+      "updateDate": "2026-05-19T18:00:21+09:00",
+      "isUnlisted": false,
+      "isMasked": false,
+      "aiType": 2,
+      "visibilityScope": 0,
+      "profileImageUrl": "https://i.pximg.net/user-profile/img/2023/05/25/00/44/00/24461786_ee9f655c5adc788056df614b1de0c246_50.jpg"
+    },
+    "145000989": {
+      "id": "145000989",
+      "title": "尻娘30連発5",
+      "illustType": 0,
+      "xRestrict": 1,
+      "restrict": 0,
+      "sl": 6,
+      "url": "https://i.pximg.net/c/250x250_80_a2/img-master/img/2026/05/20/18/02/35/145000989_p0_square1200.jpg",
+      "description": "",
+      "tags": [
+        "R-18",
+        "nsfw",
+        "尻",
+        "制服",
+        "女の子",
+        "ノーパン"
+      ],
+      "userId": "92809474",
+      "userName": "果宝@桃満界AIart",
+      "width": 2184,
+      "height": 1496,
+      "pageCount": 30,
+      "isBookmarkable": true,
+      "bookmarkData": null,
+      "alt": "nsfw / 尻娘30連発5 / May 20th, 2026",
+      "titleCaptionTranslation": {
+        "workTitle": null,
+        "workCaption": null
+      },
+      "createDate": "2026-05-20T18:02:35+09:00",
+      "updateDate": "2026-05-20T18:02:35+09:00",
+      "isUnlisted": false,
+      "isMasked": false,
+      "aiType": 2,
+      "visibilityScope": 0,
+      "profileImageUrl": "https://i.pximg.net/user-profile/img/2023/05/25/00/44/00/24461786_ee9f655c5adc788056df614b1de0c246_50.jpg"
+    },
+    "145037392": {
+      "id": "145037392",
+      "title": "教室密集ハーレム",
+      "illustType": 0,
+      "xRestrict": 1,
+      "restrict": 0,
+      "sl": 6,
+      "url": "https://i.pximg.net/c/250x250_80_a2/img-master/img/2026/05/21/18/00/05/145037392_p0_square1200.jpg",
+      "description": "",
+      "tags": [
+        "R-18",
+        "nsfw",
+        "ハーレム",
+        "全裸",
+        "全裸群衆"
+      ],
+      "userId": "92809474",
+      "userName": "果宝@桃満界AIart",
+      "width": 3024,
+      "height": 1728,
+      "pageCount": 1,
+      "isBookmarkable": true,
+      "bookmarkData": null,
+      "alt": "nsfw / 教室密集ハーレム / May 21st, 2026",
+      "titleCaptionTranslation": {
+        "workTitle": null,
+        "workCaption": null
+      },
+      "createDate": "2026-05-21T18:00:05+09:00",
+      "updateDate": "2026-05-21T18:00:05+09:00",
+      "isUnlisted": false,
+      "isMasked": false,
+      "aiType": 2,
+      "visibilityScope": 0,
+      "profileImageUrl": "https://i.pximg.net/user-profile/img/2023/05/25/00/44/00/24461786_ee9f655c5adc788056df614b1de0c246_50.jpg"
+    }
+  }
+}
+```

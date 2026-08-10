@@ -1,3 +1,5 @@
+const CRX = window.CRX = window.CRX || { log: console.log.bind(null), error: console.error.bind(null) }
+
 function injectStyles() {
 	if (document.getElementById('crx-spa-styles')) return;
 
