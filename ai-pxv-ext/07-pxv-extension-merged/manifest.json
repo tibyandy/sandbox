@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "PXV All-in-One",
+  "version": "1.2.0",
+  "description": "Estiliza, monitora fetch e enriquece thumbnails de ilustrações no Pixiv.",
+  "host_permissions": [
+    "https://*.pixiv.net/*",
+    "https://script.google.com/*",
+    "https://script.googleusercontent.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://*.pixiv.net/*"],
+      "js": ["interceptor.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": ["https://*.pixiv.net/*"],
+      "js": ["script-loader.js"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": ["https://*.pixiv.net/*"],
+      "js": ["observer.js"],
+      "run_at": "document_end",
+      "world": "MAIN"
+    },
+    {
+      "matches": ["https://*.pixiv.net/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["style.css", "SheetDatabase.js"],
+      "matches": ["https://*.pixiv.net/*"]
+    }
+  ]
+}
