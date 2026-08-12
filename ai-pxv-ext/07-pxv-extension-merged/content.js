@@ -14,6 +14,7 @@ function injectStyles() {
 
 injectStyles();
 
+
 let lastUrl = location.href;
 
 function addClassesToElement(selector, ...classes) {
