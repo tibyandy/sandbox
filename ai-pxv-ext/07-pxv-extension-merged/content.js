@@ -35,7 +35,7 @@ function hasEasternChars(str) {
 const db = (function sheetDatabase () {
 	console.log('[CRX] SheetDatabase 1.1.2');
 
-	const _instance = { webAppUrl: null, data: null };
+	const _instance = { webAppUrl: null, data: null, loaded: false };
 
 	class SheetDatabase {
 		constructor(webAppUrl) {
@@ -44,6 +44,7 @@ const db = (function sheetDatabase () {
 		}
 
 		get data() { return _instance.data; }
+		get loeaded() { return _instance.loaded; }
 
 		async load() {
 			try {
@@ -51,9 +52,11 @@ const db = (function sheetDatabase () {
 				if (!response.ok) throw new Error(`Erro ao carregar dados: ${response.statusText}`);
 				_instance.data = await response.json();
 				window.postMessage({ type: '__CRX_DATA__', data: _instance.data }, '*');
+				db.loaded = true
 				return _instance.data;
 			} catch (error) {
 				console.error("SheetDatabase.load() falhou:", error);
+				db.loaded = error
 				throw error;
 			}
 		}
@@ -112,7 +115,6 @@ const db = (function sheetDatabase () {
 	return db
 })();
 
-
 // ==================== ROUTES + BODY CLASSES ====================
 
 const ROUTES = {
@@ -170,10 +172,15 @@ function updateBodyClassesForCurrentUrl() {
 // ==================== THUMBNAIL TRACKING ====================
 const WorkResults = {};
 const trackedElements = new Set();
+let translatingTagsTimer = null;
+let alreadyTranslating = false;
+let allTagsToTranslate = 0
+let allTagsTranslated = 0
 
 window.addEventListener('message', e => {
 	if (e.source === window && e.data?.type === '__CRX_WORKS__') {
 		Object.assign(WorkResults, Object.fromEntries(e.data.works.map(({ id, ...obj }) => [id, obj])));
+		if (!alreadyTranslating) translatingTagsTimer = setTimeout(currentPageTagsNotYetTranslated, 1);
 	}
 });
 
@@ -181,7 +188,7 @@ function assignThumbData(illustId, illustData, targetParent, targetLi) {
 	if (illustData) {
 		illustData.domParent = targetParent;
 		illustData.domLi = targetLi;
-		if (!targetLi?.querySelector('.crx_work_tags')) {
+		if (!targetLi?.querySelector('.crx_work_tags') && targetLi) {
 			targetLi.classList.add('crx_work_thumbnail');
 			const el = document.createElement('ul');
 			el.className = 'crx_work_tags';
@@ -281,67 +288,115 @@ executeDOMEnhancements();
 
 // ==================== TAG UTILITY ====================
 async function currentPageTagsNotYetTranslated() {
-	console.log('[CRX] currentPageTagsNotYetTranslated()');
+	clearTimeout(translatingTagsTimer);
+	console.log('[CRX] Retrieving new tag translations to save...');
+	if (!db.loaded) {
+		console.log('[CRX] DB not loaded yet');
+		translatingTagsTimer = setTimeout(currentPageTagsNotYetTranslated, 1000);
+		return
+	}
+	if (alreadyTranslating) {
+		return
+	}
+	alreadyTranslating = true
 
-	const currentPageTagsWithMultipleOccurrencesSortedByCount = Object.entries(
+	const worksByTag = Object.fromEntries(Object.entries(
 		Object.entries(WorkResults)
-			.flatMap(([illustId, { tags }]) => tags.map(tag => [tag, illustId]))
+			.flatMap(([illustId, { tags }]) => tags.filter(tag => !tag.endsWith("users入り")).map(tag => [tag, illustId]))
 			.reduce((r, [tag, illustId]) => Object.assign(r, { [tag]: (r[tag] || []).concat(illustId) }), {})
-	).sort(([, a], [, b]) => b.length - a.length).filter(([, b]) => b.length > 1);
+	).sort(([, a], [, b]) => b.length - a.length));
 
-	const pageTagsWithEnTranslations = currentPageTagsWithMultipleOccurrencesSortedByCount.map(
-		([tag, ids]) => [tag, db.get('tags', tag)?.en || db.get('tags', tag)?.ro, ids]
+	const arrayOfTagEnRoIllusts = Object.entries(worksByTag).map(
+		([tag, ids]) => [tag, db.get('tags', tag)?.myEn || db.get('tags', tag)?.en, db.get('tags', tag)?.ro, ids]
 	);
 
-	const untranslatedTags = pageTagsWithEnTranslations.filter(([a, b]) => !b && hasEasternChars(a)).map(([a,,b]) => [a, b]);
-	
-	console.log('untranslatedTags\n', ...untranslatedTags.flatMap(x => x.flat().join(' ').concat('\n')));
+	const tagsToUpdate = arrayOfTagEnRoIllusts.filter(([tag, en, ro]) => !en && !ro)
+	allTagsToTranslate = tagsToUpdate.length
 
-	const illustsWithMostTagsUntranslated = Object.entries(
-		untranslatedTags.flatMap(([t, ids]) => ids).reduce(
-			(r, illustId) => Object.assign(r, { [illustId]: (r[illustId] || 0) + 1 }), {}
-		)
-	).sort(([, a], [, b]) => b - a);
+	const tagsAlreadyTranslatedToSave = tagsToUpdate.filter(([tag]) => !hasEasternChars(tag)).map(([tag]) => (
+		{ key: tag, values: { ro: tag } }
+	))
 
-	console.log('illustsWithMostTagsUntranslated\n', ...illustsWithMostTagsUntranslated.slice(0, 4).flatMap(x => x.concat('\n')));
-
-	if (illustsWithMostTagsUntranslated.length) {
-		const ajaxUrl = `https://www.pixiv.net/ajax/illust/${illustsWithMostTagsUntranslated[0][0]}?lang=en`
-		const refUrl = `https://www.pixiv.net/en/artworks/${illustsWithMostTagsUntranslated[0][0]}`
-		console.log('url', ajaxUrl);
-
-		const result = await fetch(ajaxUrl, {
-			"headers": {
-				"accept": "application/json",
-				"accept-language": "en-US,en;q=0.9,pt-BR;q=0.8,pt;q=0.7",
-				"baggage": "sentry-environment=production,sentry-public_key=1bce6ddb909da69b0efb68a4785c448c,sentry-trace_id=91101d2355ec40628d0efb57ff019e56,sentry-sampled=false,sentry-sample_rand=0.6269702122562493,sentry-sample_rate=0.0001",
-				"cache-control": "max-age=0",
-				"priority": "u=1, i",
-				"sec-ch-ua": "\"Not=A?Brand\";v=\"99\", \"Brave\";v=\"151\", \"Chromium\";v=\"151\"",
-				"sec-ch-ua-mobile": "?0",
-				"sec-ch-ua-platform": "\"Windows\"",
-				"sec-fetch-dest": "empty",
-				"sec-fetch-mode": "cors",
-				"sec-fetch-site": "same-origin",
-				"sentry-trace": "91101d2355ec40628d0efb57ff019e56-81d18663b216189d-0",
-				"x-user-id": "5986322"
-			},
-			"referrer": refUrl,
-			"body": null,
-			"method": "GET",
-			"mode": "cors",
-			"credentials": "include"
-		}).then(x => x.json());
-
-		const translations = (result?.body?.tags?.tags || []).map(t => [t?.tag, t?.romaji, t?.translation?.en]);
-		console.log('translations', ...translations.flatMap(t => t.concat('\n')));
-
-		const itemsToSave = translations.map(([jp, ro, en]) => ({ key: jp, values: { ro, en } }));
-		await db.putMany('tags', itemsToSave);
-
-		const translated = translations.map(([jp]) => db.get('tags', jp));
-		console.log('translated', ...translated);
+	let saveTranslatedTagsPromise = null
+	if (tagsAlreadyTranslatedToSave.length) {
+		console.log('[CRX] Saving', tagsAlreadyTranslatedToSave.length, 'already translated tags...')
+		saveTranslatedTagsPromise = db.putMany('tags', tagsAlreadyTranslatedToSave).then(() => {
+			console.log('[CRX] Saved', tagsAlreadyTranslatedToSave.length, 'already translated tags!', ...tagsAlreadyTranslatedToSave.flatMap((x, i) => ['\n', i + 1, x.key]));
+			allTagsTranslated += tagsAlreadyTranslatedToSave.length
+		})
 	}
+
+	const tagsNotTranslatedYet = tagsToUpdate.filter(([tag]) => hasEasternChars(tag)).map(([a,,,b]) => [a, b])
+
+	const illustsByNumberOfUntranslatedTags = Object.entries(tagsNotTranslatedYet.reduce((acc, [tag, ids]) => {
+		ids.forEach(id => (acc[id] ??= []).push(tag));
+		return acc;
+	}, {})).sort(([,a],[,b])=>b.length-a.length);
+
+	const tagsPercentageTranslated = Math.floor(allTagsTranslated / (allTagsTranslated + allTagsToTranslate) * 100)
+	const pct = isNaN(tagsPercentageTranslated) ? 100 : tagsPercentageTranslated
+	console.log('[CRX] Progress:',
+		('▓'.repeat(pct) + '░'.repeat(100 - pct)), pct, '% (',
+		allTagsTranslated, '/', (allTagsTranslated + allTagsToTranslate), ')\n',
+		...tagsNotTranslatedYet.flatMap(([x], i) => [i + 1, x])
+	);
+
+	if (!illustsByNumberOfUntranslatedTags.length) {
+		console.log('[CRX] All illustration tags from this page are already translated!')
+		allTagsTranslated = allTagsToTranslate = 0
+		clearTimeout(translatingTagsTimer);
+		alreadyTranslating = false
+		return
+	}
+
+	const tagsToTranslate = illustsByNumberOfUntranslatedTags[0][1]
+	console.log('[CRX] Illust with the most untranslated tags:', illustsByNumberOfUntranslatedTags[0][0] * 1, '=', ...illustsByNumberOfUntranslatedTags[0][1].flatMap((x, i) => [i + 1, x]));
+
+	const ajaxUrl = `https://www.pixiv.net/ajax/illust/${illustsByNumberOfUntranslatedTags[0][0]}?lang=en`
+	const refUrl = `https://www.pixiv.net/en/artworks/${illustsByNumberOfUntranslatedTags[0][0]}`
+	console.log('url =', refUrl, 'ajax =', ajaxUrl);
+
+	const result = await fetch(ajaxUrl, {
+		"headers": {
+			"accept": "application/json",
+			"accept-language": "en-US,en;q=0.9,pt-BR;q=0.8,pt;q=0.7",
+			"baggage": "sentry-environment=production,sentry-public_key=1bce6ddb909da69b0efb68a4785c448c,sentry-trace_id=91101d2355ec40628d0efb57ff019e56,sentry-sampled=false,sentry-sample_rand=0.6269702122562493,sentry-sample_rate=0.0001",
+			"cache-control": "max-age=0",
+			"priority": "u=1, i",
+			"sec-ch-ua": "\"Not=A?Brand\";v=\"99\", \"Brave\";v=\"151\", \"Chromium\";v=\"151\"",
+			"sec-ch-ua-mobile": "?0",
+			"sec-ch-ua-platform": "\"Windows\"",
+			"sec-fetch-dest": "empty",
+			"sec-fetch-mode": "cors",
+			"sec-fetch-site": "same-origin",
+			"sentry-trace": "91101d2355ec40628d0efb57ff019e56-81d18663b216189d-0",
+			"x-user-id": "5986322"
+		},
+		"referrer": refUrl,
+		"body": null,
+		"method": "GET",
+		"mode": "cors",
+		"credentials": "include"
+	}).then(x => x.json());
+
+	const translations = (result?.body?.tags?.tags || []).map(t => [t?.tag, t?.romaji, t?.translation?.en]);
+	const newTranslations = translations.filter(t => tagsToTranslate.includes(t[0]))
+	const itemsToSave = translations.filter(([jp]) => !jp.endsWith("users入り")).map(([jp, ro = jp, en = '']) => ({ key: jp, values: { ro, en } }));
+
+	if (saveTranslatedTagsPromise) {
+		await saveTranslatedTagsPromise;
+	}
+
+	console.log('[CRX] Saving', newTranslations.length, 'translations:\n', ...newTranslations.flatMap((t, i) => [i + 1, (t.join(' / ')), '\n']));
+	await db.putMany('tags', itemsToSave);
+
+	console.log('[CRX]', newTranslations.length, 'new translations saved and', itemsToSave.length - newTranslations.length, 'tags updated!')
+	allTagsTranslated += newTranslations.length
+	alreadyTranslating = false
+	translatingTagsTimer = setTimeout(currentPageTagsNotYetTranslated, 1);
 }
 
-// setTimeout(currentPageTagsNotYetTranslated, 5000);
+window.addEventListener('message', e => {
+	if (e.source === window && e.data?.type === '__CRX_RUN_TAGS__') currentPageTagsNotYetTranslated();
+	if (e.source === window && e.data?.type === '__CRX_DB_LOAD__') db.load();
+});

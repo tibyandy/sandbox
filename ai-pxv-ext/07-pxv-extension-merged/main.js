@@ -22,6 +22,14 @@ console.log('[CRX] Main World Setup');
 
 window.fetch = CRX.fetch = async function(...args) {
   const url = args[0];
+  if (url.includes('pagead2.googlesyndication')
+    || url.includes('micro.rubiconproject.com')
+    || url.includes('cdn.onesignal.com')
+    || url.includes('pixon.ads-pixiv')
+    || url.includes('doubleclick.net')) {
+      console.log('[CRX] Blocked Fetch', url)
+      return {}
+  }
   const response = await CRX.originalFetch.apply(this, args);
 
   if (!(typeof url === 'string' && url.startsWith('/'))) return response;
@@ -60,6 +68,10 @@ let _dbData = {};
 window.addEventListener('message', e => {
   if (e.source === window && e.data?.type === '__CRX_DATA__') _dbData = e.data.data;
 });
-CRX.db = { get: (aba, chave) => chave === undefined ? _dbData[aba] : _dbData[aba]?.[chave] };
+CRX.db = {
+  get: (aba, chave) => chave === undefined ? _dbData[aba] : _dbData[aba]?.[chave],
+  load () { return window.postMessage({ type: '__CRX_DB_LOAD__' }, '*') }
+};
+CRX.currentPageTagsNotYetTranslated = () => window.postMessage({ type: '__CRX_RUN_TAGS__' }, '*');
 
 CRX.log('[CRX] interceptor ready');
