@@ -1,0 +1,208 @@
+@media print {
+	body {
+		zoom: 66%;
+	}
+}
+@page {
+	size: A4 landscape;
+    margin: 10mm 5mm;
+}
+.operation > table {
+	width: 100%;
+	&> * > th, &> * > td {
+		padding: 0;
+	}
+}
+.operation > table thead {
+	text-align: left;
+}
+.operation h2, .definition h2 {
+	display: inline;
+}
+
+
+
+
+table td { vertical-align: top }
+table { border-spacing: 0 }
+
+.operation > table > tbody > tr > td { padding-left: 20px }
+.operation > table > thead > tr > td { padding-top: 1ch }
+
+.parameters .description,
+.description,
+.schema-table td:last-child { 
+	p, ul {
+		margin: 0;
+	}
+	code {
+		font-weight: bold;
+		background: #e4e4e4;
+		padding: 0 0.5ch;
+	}
+}
+.parameters h3 { margin: 0; padding: 0; }
+
+.parameters { display: flex; gap: 2ch; margin-top: 3ch }
+
+body.light {
+	--indent-color: #008;
+	--indent-clear-color: #ccc;
+	--row-separator-color: #fff;
+
+	.schema-table thead tr,
+	.parameters table thead tr td { border-color: #000 transparent; }
+	.schema-table tbody tr,
+	.parameters table tbody tr td { border-color: #ccc transparent; }
+
+	a { color: #00c; font-weight: bold; text-decoration: none; }
+	.required { color: #c00; }
+}
+body.dark {
+	--indent-color: #fff;
+	--indent-clear-color: #777;
+	--row-separator-color: #fff;
+	background: #000;
+	color: #ccc;
+	h1, h2, h3, h4, h5, h6 { background: #333; }
+	.schema-table { color: #aaa;  }
+	.schema-table, .schema-table tr { border-color: #333; }
+	.schema-table tr th { color: #fff; }
+	.schema-table tr > *:last-child { background: #fff1 }
+	.schema-table tr:hover { background: #fff2 }
+	.required { color: #f88; }
+	.example { color: #777; }
+	.example > div:hover { background: #fff2 }
+	.example span.tag         { color: #eee; }
+	.example span.string      { color: #7ad; }
+	.example span.boolean     { color: #48c; }
+	.example span.number      { color: #ada; }
+	.example span.integer     { color: #ada; }
+	.example span.sep         { color: #777; }
+	.example .array  { .key, .array, .colon { color: #fc8; } }
+	.example .undefined .array { color: #fc8; }
+	.example .object { .key, .array, .colon { color: #eee; } }
+	.example span.key          { color: #bdf; }
+	.example .array span.key   { color: #fc8; }
+	.attribute { color: #aaa }
+	.type-cell.object      { color: #eee; }
+	.type-cell.string      { color: #bdf; }
+	.type-cell.boolean     { color: #48c; }
+	.type-cell.number      { color: #ada; }
+	.type-cell.integer     { color: #ada; }
+	.type-cell.array       { color: #fc8 }
+	a { color: #ff8 }
+}
+
+.example span:hover:has(span.key) { color: var(--indent-color); }
+.example:has(> div:first-child:hover) div i:nth-child(1),
+.example:has(> div:first-child:hover) div i:nth-child(1),
+.example:has(div i:nth-child(1):hover) div i:nth-child(1),
+.example:has(div i:nth-child(1) + *:hover) div i:nth-child(2),
+.example:has(div i:nth-child(2) + *:hover) div i:nth-child(3),
+.example:has(div i:nth-child(3) + *:hover) div i:nth-child(4),
+.example:has(div i:nth-child(4) + *:hover) div i:nth-child(5),
+.example:has(div i:nth-child(5) + *:hover) div i:nth-child(6),
+.example:has(div i:nth-child(6) + *:hover) div i:nth-child(7),
+.example:has(div i:nth-child(7) + *:hover) div i:nth-child(8),
+.example:has(div i:nth-child(8) + *:hover) div i:nth-child(9) {
+	border-left-color: var(--indent-color);
+}
+
+@media screen {
+	body { margin: 0 16px; }
+}
+
+
+.parameters table { border: solid 0px transparent }
+.response-schema h4, .body-schema h4, .definition h4 { font-size: 14px; font-weight: bold; }
+
+.two-columns { display: flex; gap: 6px; }
+.two-columns > div:last-child { flex: 1 }
+
+.schema-table { width: 100%; cursor: text }
+.schema-table tr th:last-child { width: 100%  }
+.schema-table tr > *:last-child,
+.parameters tr > *:nth-child(n + 2) { border-left: solid 6px transparent }
+.schema-table tr th { text-align: left; padding-left: 1ch }
+.schema-table, .parameters table { border-collapse: collapse; font-size: 14px }
+
+
+.schema-table td:first-child { white-space: nowrap; }
+
+@media screen {
+	.operation,
+	.tag-item,
+	.definition { margin-bottom: 10ch }
+}
+
+@media print {
+	.operation,
+	.tag-item,
+	.definition {
+		page-break-before: always;
+		page-break-after: always;
+	}
+}
+
+
+.example > div { display: flex }
+
+/* ==== BORDERS ==== */
+/*
+.schema-table thead tr, .schema-table tbody tr:not(:last-child),
+.response-schema h4, .body-schema h4,
+.parameters table thead tr > *,
+.parameters table tbody tr:not(:last-child) > *
+{ border-bottom-style: solid; border-bottom-width: thin ; }
+.example > div > * { border: solid thin #000; }
+.example > div > * { border-color: var(--row-separator-color);
+	border-style: none none solid none;
+	border-width: 0 0 1px 0 }
+.example i { border-left: solid 1px var(--indent-clear-color); margin-left: -1px }
+.operation .header,
+.definition .header{
+	border-bottom: solid thin;
+}
+*/
+
+/* ==== FONTS ===== */
+body { font-family: sans-serif; font-size: 16px; }
+h2, h3, h4, h5, h6 { font-size: 1rem; font-weight: normal; }
+.operation h2, .definition h2, .body-schema h4, .responses h3 { font-size: inherit }
+.operation .header, .definition .header { font-size: 24px; font-weight: normal; }
+.body-schema h3, .response h3, .parameters h3 {
+	font-size: 20px; position: relative;
+	&::before { position: absolute; content: "\2B25"; left: -20px; }
+}
+.example { font-size: 13.5px; letter-spacing: -0.07ch; cursor: text; }
+.schema-table .attribute { font-weight: bold; }
+.schema-table .attribute .type-cell { font-weight: normal; }
+.required { font-family: 'Courier New', Courier, monospace; font-size: 19px;  }
+
+/* ==== TEXT-SPACING ==== */
+.schema-table td { line-height: 18px }
+.example { line-height: 18px; }
+.required { line-height: 0.8; }
+.operation .header, .definition .header { line-height: 1.33em;}
+/* p, td, th { line-height: 1.33rem } */
+
+/* ==== SPACING ==== */
+.body-schema h3, .response h3, .parameters h3 { margin: 2ch 0 1ch; }
+.operation h2, .definition h2, .body-schema h4, .responses h3 { margin: 0; padding: 0;  }
+.response-schema h4, .body-schema h4, .definition h4  { padding: 1px 0 }
+.schema-table td { padding: 0 2ch; }
+.operation .header, .definition .header { margin-top: 2ch; }
+.example { margin: 0 2ch 0 0; }
+.required { margin-left: -0.15ch; }
+
+.example > div *:last-child { flex: 1 }
+.example i { margin-left: 0.5ch}
+
+
+h2, h3, h4, h5, h6 {
+	margin: 0 0 0.5ch;
+	padding: 0;
+	
+}
+
