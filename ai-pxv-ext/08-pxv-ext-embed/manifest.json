@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Extra PX",
+  "version": "1.2.2",
+  "description": "Mais coisas pro PX.",
+  "host_permissions": [
+    "https://*.pixiv.net/*",
+    "https://script.google.com/*",
+    "https://script.googleusercontent.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://*.pixiv.net/*"],
+      "js": ["launcher.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["pxv-crx.css", "pxv-crx.js"],
+      "matches": ["https://*.pixiv.net/*"]
+    }
+  ]
+}

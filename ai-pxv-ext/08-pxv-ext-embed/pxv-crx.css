@@ -1,3 +1,6 @@
+img { opacity: 0 }
+._added { outline: ridge #0ff4 2px; }
+
 html, body {
   scrollbar-gutter: stable;
 }
@@ -30,8 +33,6 @@ div:has( > div[style*="height: 60px"]:empty) { display: none }
 .crx_like_fav_bar > div { background: rgba(0, 0, 0, 0.92); }
 .crx_like_fav_bar button > div:first-child { background: rgba(0, 0, 0, 0.92); }
 .crx_like_fav_bar > div[style] { transform: none !important; }
-
-._added { outline: ridge #0ff4 2px; }
 
 body::before { position: fixed; right: 0; top: 0; z-index: 9999; -webkit-text-stroke: 3px #00000088; paint-order: stroke fill; text-shadow: 0 0 2px #000; letter-spacing: 0.5px; color: #fff; font-size: 10px; padding: 2px }
 body:not(._body) { content: '?' }
@@ -78,13 +79,13 @@ body {
     position: absolute;
     left: 0;
     margin-top: -64px;
-    outline-color: #f00; outline-style: solid; outline-width: 4px;
     width: calc(100% / 7) !important;
 }
 /* Bookmarks Gallery */
 section div:has( > ul ) {
-    outline-color: #f00; outline-style: solid; outline-width: 4px;
+    /*outline-color: #f00; outline-style: solid; outline-width: 4px;*/
     position: absolute;
+    margin-top: -1px;
     right: 0;
     width: calc(100% / 7 * 6) !important;
     > ul {
@@ -103,6 +104,33 @@ section div:has( > ul ) {
 }
 
 /* Bookmarks Card */
+section div > ul > li div[width]:not(:has(a)) {
+    div:not(:has(button)) {
+        width: 100%;
+        height: 100%;
+        place-content: center;
+        > div {
+            margin-top: -10px;
+            padding: 12px 0;
+        }
+    }
+}
+section div > ul > li:has(div[width]):not(:has(a)) {
+    box-sizing: border-box;
+    padding: 1px;
+    > div {
+        background: #000;
+        height: 100%;
+    }
+    div:has(> div[width]), div[width] { /* Image Wrapper */
+        width: 100% !important;
+        height: 100%;
+    }
+    div:has(div[width]) ~ div * {
+        height: 0;
+    }
+}
+
 section div > ul > li > div > div:has(> label) {
     /* 1st Div from Card */
     border-radius: 0 !important;
@@ -113,13 +141,18 @@ section div > ul > li > div > div:has(> label) {
         height: calc(100% / 8 + 12px) !important;
         > a { /* thumbnail link */
             border: solid 1px #f00;
+            border-color: #333 #000 #000 #333;
             box-sizing: border-box;
-            + div:has( > div > button ) {
-                /* Favorite Button */
-                * { 
-                    cursor: -webkit-grab;
-                }
+            &:hover {
+                border-color: #555 #444 #444 #555;
+                background: #333;
+                box-shadow: 1px 1px 5px #0003 inset, 1px 1px 0 #0006 inset;
+                text-shadow: 1px 1px 0 #000;                
             }
+            + div:has( > div > button) {
+                /* Favorite Button */
+            }
+            img { border-radius: 0 }
         }
 
         + div { /* Edit icon */
@@ -160,3 +193,72 @@ nav.charcoal-pagination {
 }
 
 .crx_work_tags { display: none }
+
+
+.crx_page_tags ul {
+    list-style: none; margin: 0; padding: 0;
+    li:hover {
+        border-color: #555 #444 #444 #555;
+        background: #333;
+        box-shadow: 1px 1px 5px #0003 inset, 1px 1px 0 #0006 inset;
+        text-shadow: 1px 1px 0 #000;
+    }
+    li {
+        border: solid 1px #fff;
+        border-color: #333 #000 #000 #333;
+        margin-bottom: 1px;
+        cursor: pointer;
+        display: grid;
+        justify-content: start;
+        height: 30px;
+        width: 100%;
+        box-sizing: border-box;
+        font-size: 16px;
+        &.one_tag { grid: 'b a'; }
+        &.two_tag { grid: 'b a' 'b c'; }
+
+        > span + span { /* Count */
+            grid-area: b;
+            width: 14px;
+            text-align: center;
+            letter-spacing: -0.2ch;
+            color: #6af;
+            line-height: 28px;
+            padding: 0 8px 0 4px;
+        }
+
+        &.one_tag > span:first-child {
+            font-size: 14px;
+            line-height: 28px;
+            letter-spacing: -0.04ch;
+        }
+        &.two_tag > span:first-child {
+            font-size: 12px;
+            line-height: 13px;
+            letter-spacing: -0.06ch;
+        }
+        > span:first-child {
+            display: block;
+            grid-area: a;
+            line-height: 18px;
+            color: #fc6;
+            letter-spacing: 0.05ch;
+            width: 1fr;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            scrollbar-width: none;
+            white-space: nowrap;
+        }
+        div {
+            font-size: 13px;
+            line-height: 14px;
+            grid-area: c;
+            color: #6afa;
+            letter-spacing: 0.1ch;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+            margin-top: -2px;
+        }
+    } 
+}

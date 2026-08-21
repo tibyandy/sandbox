@@ -67,11 +67,12 @@ window.fetch = CRX.fetch = async function(...args) {
 let _dbData = {};
 window.addEventListener('message', e => {
   if (e.source === window && e.data?.type === '__CRX_DATA__') _dbData = e.data.data;
+  if (e.source === window && e.data?.type === '__currentPageTagsAndIllusts__') CRX.currentPageTagsAndIllusts = e.data;
 });
 CRX.db = {
   get: (aba, chave) => chave === undefined ? _dbData[aba] : _dbData[aba]?.[chave],
   load () { return window.postMessage({ type: '__CRX_DB_LOAD__' }, '*') }
 };
 CRX.currentPageTagsNotYetTranslated = () => window.postMessage({ type: '__CRX_RUN_TAGS__' }, '*');
-
+CRX.getCurrentPageTagsAndIllusts = () => window.postMessage({ type: '__currentPageTagsAndIllusts__' }, '*');
 CRX.log('[CRX] interceptor ready');

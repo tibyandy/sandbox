@@ -1,38 +1,78 @@
-const originalLog = console.log
-const now = () => (performance.now() / 1000).toFixed(4)
+const CRX = window.CRX ||= {
+  get now() { return (performance.now() / 1000).toFixed(4) },
+  originalLog: console.log,
+  FetchResults: [],
+  WorkResults: {},
+  originalFetch: window.fetch
+};
+
 Object.defineProperties(console, {
 log: { get: () =>
-  originalLog.bind(console, `%c${now()}%c %s`, 'color: #00cc99; font-weight: bold', 'color: auto'),
+  CRX.originalLog.bind(console, `%c${CRX.now}%c %s`, 'color: #00cc99; font-weight: bold', 'color: auto'),
   configurable: true, enumerable: true },
 error: { get: () =>
-  originalLog.bind(console, `%c${now()}%c %s`, 'color: #cc0099; font-weight: bold', 'color: #ffaaaa;'),
+  CRX.originalLog.bind(console, `%c${CRX.now}%c %s`, 'color: #cc0099; font-weight: bold', 'color: #ffaaaa;'),
   configurable: true, enumerable: true }
 });
+CRX.log = console.log.bind(console);
+CRX.error = console.error.bind(console);
 Object.freeze(console);
 
-console.log('[CRX] Content World Setup');
+console.log('[CRX] Main World Setup');
 
 const SPECIAL_USER_ID = '5986322';
 
-// ==================== STYLES ====================
-function injectStyles() {
-	if (document.getElementById('crx-spa-styles')) return;
-	const link = document.createElement('link');
-	link.id = 'crx-spa-styles';
-	link.rel = 'stylesheet';
-	link.type = 'text/css';
-	link.href = chrome.runtime.getURL('style.css');
-	(document.head || document.documentElement).appendChild(link);
-}
+window.fetch = CRX.fetch = async function(...args) {
+  const url = args[0];
+  if (url.includes('pagead2.googlesyndication')
+    || url.includes('micro.rubiconproject.com')
+    || url.includes('cdn.onesignal.com')
+    || url.includes('pixon.ads-pixiv')
+    || url.includes('doubleclick.net')) {
+      console.log('[CRX] Blocked Fetch', url)
+      return {}
+  }
+  const response = await CRX.originalFetch.apply(this, args);
 
-injectStyles();
+  if (!(typeof url === 'string' && url.startsWith('/'))) return response;
+
+  try {
+    const clonedResponse = response.clone();
+    const contentType = clonedResponse.headers.get('content-type');
+    const responseBody = await (
+      (contentType && contentType.includes('application/json'))
+        ? clonedResponse.json()
+        : clonedResponse.text()
+    );
+
+    const result = { url: response.url || url, responseBody, httpStatus: response.status };
+
+    if (!url.startsWith('/ajax/')) return // Ignore URL
+
+    const works = responseBody?.body?.works;
+    if (works) {
+      CRX.log('[CRX.fetch] - CRX.WorkResults <-- ', works.length, 'ilustrações');
+      Object.assign(CRX.WorkResults, Object.fromEntries(works.map(({ id, ...obj }) => [id, obj])));
+      Object.assign(WorkResults, Object.fromEntries(works.map(({ id, ...obj }) => [id, obj])));
+      if (!alreadyTranslating) translatingTagsTimer = setTimeout(currentPageTagsNotYetTranslated, 1);
+      setAllPageTags(works);
+    } else {
+      CRX.log('[CRX.fetch] - CRX.FetchResults <--', url, response.status, responseBody?.body || responseBody);
+      CRX.FetchResults.push(result);
+    }
+  } catch (err) {
+    console.error('[CRX.fetch] - Erro:', err);
+  }
+
+  return response;
+};
 
 function hasEasternChars(str) {
   return /[^\x00-\u024F\u0300-\u036F\u2000-\u2BFF\u2E00-\u2E7F\u3000-\u303F\uFE00-\uFE0F\uFF01-\uFF60\uFFE0-\uFFEE\u{1F000}-\u{1FFFF}\u{E0000}-\u{E007F}]/u.test(str);
 }
 
 // ==================== SHEET DATABASE ====================
-const db = (function sheetDatabase () {
+const db = CRX.db = (function sheetDatabase () {
 	console.log('[CRX] SheetDatabase 1.1.2');
 
 	const _instance = { webAppUrl: null, data: null, loaded: false };
@@ -44,19 +84,18 @@ const db = (function sheetDatabase () {
 		}
 
 		get data() { return _instance.data; }
-		get loeaded() { return _instance.loaded; }
+		get loaded() { return _instance.loaded; }
 
 		async load() {
 			try {
 				const response = await fetch(_instance.webAppUrl);
 				if (!response.ok) throw new Error(`Erro ao carregar dados: ${response.statusText}`);
 				_instance.data = await response.json();
-				window.postMessage({ type: '__CRX_DATA__', data: _instance.data }, '*');
-				db.loaded = true
+				_instance.loaded = true
 				return _instance.data;
 			} catch (error) {
 				console.error("SheetDatabase.load() falhou:", error);
-				db.loaded = error
+				_instance.loaded = error
 				throw error;
 			}
 		}
@@ -170,20 +209,12 @@ function updateBodyClassesForCurrentUrl() {
 }
 
 // ==================== THUMBNAIL TRACKING ====================
-const WorkResults = {};
+const WorkResults = CRX.WorkResults;
 const trackedElements = new Set();
 let translatingTagsTimer = null;
 let alreadyTranslating = false;
 let allTagsToTranslate = 0
 let allTagsTranslated = 0
-
-window.addEventListener('message', e => {
-	if (e.source === window && e.data?.type === '__CRX_WORKS__') {
-		Object.assign(WorkResults, Object.fromEntries(e.data.works.map(({ id, ...obj }) => [id, obj])));
-		if (!alreadyTranslating) translatingTagsTimer = setTimeout(currentPageTagsNotYetTranslated, 1);
-		setAllPageTags(e.data.works)
-	}
-});
 
 function assignThumbData(illustId, illustData, targetParent, targetLi) {
 	if (illustData) {
@@ -194,7 +225,7 @@ function assignThumbData(illustId, illustData, targetParent, targetLi) {
 			const el = document.createElement('ul');
 			el.className = 'crx_work_tags';
 			el.innerHTML = WorkResults[illustId].tags.filter(t => t !== 'R-18' && t !== 'R-18G').map(t => {
-				const tagData = db.get('tags', t);
+				const tagData = CRX.db.get('tags', t);
 				const en = tagData?.en || tagData?.ro || '?';
 				return `<li class="crx_tag_entry"><span class="crx_en">${en}</span> <span class="crx_ja">#${t}</span>`;
 			}).join('');
@@ -232,7 +263,7 @@ function executeDOMCleanUp() {
 	document.querySelectorAll('.crx_sidebar .crx_like_fav_bar').forEach(el => el.remove());
 }
 
-const currentPageTagsAndIllusts = []
+const currentPageTagsAndIllusts = CRX.currentPageTagsAndIllusts = []
 
 function executeDOMEnhancements() {
 	const sidebar = addClassesToElement('aside:has(h2):has(nav)', 'crx_sidebar');
@@ -266,7 +297,7 @@ function executeDOMEnhancements() {
 function setAllPageTags(works) {
 	console.log('works', works)
 	currentPageTagsAndIllusts.length = 0
-	newTags = Object.entries(
+	const newTags = Object.entries(
 		works.flatMap((w) => w.tags.map(t => [w.id, t])).filter(
 			([, tag]) => !tag.endsWith("users入り")
 		).reduce((r, [illustId, tag]) => Object.assign(r, { [tag]: (r[tag] || []).concat(illustId) }), {})
@@ -278,11 +309,16 @@ function setAllPageTags(works) {
 
 function updateCurrentPageTags() {
 	console.log('updateCurrentPageTags', currentPageTagsAndIllusts)
+	if (!CRX.db.loaded) {
+		return setTimeout(updateCurrentPageTags, 2000);
+	}
+	const crx_page_tags = document.getElementById('crx_page_tags');
 	if (!crx_page_tags) return
 	crx_page_tags.innerHTML = '<ul>' + currentPageTagsAndIllusts.map(([jTag, illusts]) => {
 		const tag = db.get('tags', jTag) || {}
-		return `<li><div>${tag.myEn || tag.en || tag.ro || ''}</div><div>${jTag}</div><span>${illusts.length}</span></li>`
-	}) + '</ul>'
+		const enTag = tag.myEn || tag.en || tag.ro || jTag
+		return `<li class="${jTag == enTag ? 'one_tag' : 'two_tag'}"><span>${enTag}</span><span>${illusts.length}</span>${(jTag == enTag) ? '' : `<div>${jTag}</div>`}</li>`
+	}).join('') + '</ul>'
 }
 
 function tryTo(fn) {
@@ -314,12 +350,15 @@ const observer = new MutationObserver((mutations) => {
 	}
 });
 
-observer.observe(document.body || document.documentElement, { childList: true, subtree: true });
+function startObserver() {
+	observer.observe(document.body || document.documentElement, { childList: true, subtree: true });
+	updateBodyClassesForCurrentUrl();
+	document.querySelectorAll('[data-ga4-label] img').forEach(checkIfImgIsThumb);
+	executeDOMEnhancements();
+}
 
-// ==================== INITIAL PASS ====================
-updateBodyClassesForCurrentUrl();
-document.querySelectorAll('[data-ga4-label] img').forEach(checkIfImgIsThumb);
-executeDOMEnhancements();
+if (document.body) startObserver();
+else document.addEventListener('DOMContentLoaded', startObserver, { once: true });
 
 // ==================== TAG UTILITY ====================
 async function currentPageTagsNotYetTranslated() {
@@ -428,13 +467,11 @@ async function currentPageTagsNotYetTranslated() {
 	console.log('[CRX]', newTranslations.length, 'new translations saved and', itemsToSave.length - newTranslations.length, 'tags updated!')
 	allTagsTranslated += newTranslations.length
 	alreadyTranslating = false
+	setTimeout(updateCurrentPageTags(), 2)
 	translatingTagsTimer = setTimeout(currentPageTagsNotYetTranslated, 1);
 }
 
-window.addEventListener('message', e => {
-	if (e.source === window && e.data?.type === '__CRX_RUN_TAGS__') currentPageTagsNotYetTranslated();
-	if (e.source === window && e.data?.type === '__CRX_DB_LOAD__') db.load();
-	if (e.source === window && e.data?.type === '__currentPageTagsAndIllusts__') {
-		window.postMessage({ type: '__currentPageTagsAndIllusts__', data: currentPageTagsAndIllusts }, '*');
-	}
-});
+CRX.currentPageTagsNotYetTranslated = currentPageTagsNotYetTranslated;
+CRX.getCurrentPageTagsAndIllusts = () => currentPageTagsAndIllusts;
+
+CRX.log('[CRX] interceptor ready');
