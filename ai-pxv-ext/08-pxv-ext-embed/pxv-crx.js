@@ -50,14 +50,23 @@ window.fetch = CRX.fetch = async function(...args) {
     if (!url.startsWith('/ajax/')) return // Ignore URL
 
     const works = responseBody?.body?.works;
+    const tagTranslation = responseBody?.body?.tagTranslation;
+    const illustTags = responseBody?.body?.tags?.tags;
     if (works) {
-      CRX.log('[CRX.fetch] - CRX.WorkResults <-- ', works.length, 'ilustrações');
-      Object.assign(CRX.WorkResults, Object.fromEntries(works.map(({ id, ...obj }) => [id, obj])));
-      Object.assign(WorkResults, Object.fromEntries(works.map(({ id, ...obj }) => [id, obj])));
+      // CRX.log('[CRX.fetch] - CRX.WorkResults <-- ', works.length, 'ilustrações');
+			const worksMap = Array.isArray(works)
+				? Object.fromEntries(works.map(({ id, ...obj }) => [id, obj]))
+				: works;
+			Object.assign(CRX.WorkResults, worksMap);
+      Object.assign(WorkResults, worksMap);
       if (!alreadyTranslating) translatingTagsTimer = setTimeout(currentPageTagsNotYetTranslated, 1);
       setAllPageTags(works);
+    } else if (tagTranslation) {
+      saveTagTranslations(tagTranslation);
+    } else if (illustTags) {
+      saveIllustTagTranslations(illustTags);
     } else {
-      CRX.log('[CRX.fetch] - CRX.FetchResults <--', url, response.status, responseBody?.body || responseBody);
+      // CRX.log('[CRX.fetch] - CRX.FetchResults <--', url, response.status, responseBody?.body || responseBody);
       CRX.FetchResults.push(result);
     }
   } catch (err) {
@@ -154,6 +163,53 @@ const db = CRX.db = (function sheetDatabase () {
 	return db
 })();
 
+// ==================== TAG TRANSLATION AUTO-SAVE ====================
+// Usado pelos endpoints /ajax/search/tags/{tag} e /ajax/search/artworks/{keyword},
+// que retornam body.tagTranslation: { [tagJp]: { romaji, en, ... } }
+let savingTagTranslations = false;
+async function mergeAndSaveTags(entries) {
+	// entries: [tag, romaji, en][]
+	const items = entries
+		.filter(([tag]) => !tag.endsWith("users入り"))
+		.map(([tag, romaji, en]) => {
+			const existing = db.get('tags', tag) || {};
+			const values = {};
+			if (romaji && romaji !== existing.ro) values.ro = romaji;
+			if (en && en !== existing.en) values.en = en;
+			return { key: tag, values };
+		})
+		.filter(({ values }) => Object.keys(values).length);
+
+	if (!items.length) return;
+
+	if (savingTagTranslations) {
+		setTimeout(() => mergeAndSaveTags(entries), 500);
+		return;
+	}
+	savingTagTranslations = true;
+	try {
+		const inicio = new Date().getTime();
+		console.log('[CRX] Salvando', items.length, 'tags:', ...items.flatMap(({ key, values }, i) => ['\n-', i + 1, '-', [key, ...Object.values(values)].reverse().join(' / ')]));		
+		await db.putMany('tags', items);
+		const delta = (new Date().getTime() - inicio)
+		console.log('[CRX]', items.length, 'tag salvas em', Math.trunc(delta / 100) / 10, 'segundos:', Math.round(items.length / (delta / 100000)) / 100, 'tags por segundo');
+	} catch (err) {
+		console.error('[CRX] mergeAndSaveTags falhou:', err);
+	} finally {
+		savingTagTranslations = false;
+	}
+}
+
+// /ajax/search/tags/{tag} e /ajax/search/artworks/{keyword}: body.tagTranslation = { [tagJp]: { romaji, en, ... } }
+function saveTagTranslations(tagTranslation) {
+	mergeAndSaveTags(Object.entries(tagTranslation).map(([tag, { romaji, en }]) => [tag, romaji, en]));
+}
+
+// /ajax/illust/{id}: body.tags.tags = [{ tag, romaji, translation: { en } }]
+function saveIllustTagTranslations(illustTags) {
+	mergeAndSaveTags(illustTags.map(({ tag, romaji, translation }) => [tag, romaji, translation?.en]));
+}
+
 // ==================== ROUTES + BODY CLASSES ====================
 
 const ROUTES = {
@@ -232,7 +288,7 @@ function assignThumbData(illustId, illustData, targetParent, targetLi) {
 			targetLi.append(el);
 		}
 	} else {
-		console.log("[CRX] assignThumbData - Dados não encontrados: #" + illustId);
+		// console.log("[CRX] assignThumbData - Dados não encontrados: #" + illustId);
 	}
 }
 
@@ -294,21 +350,23 @@ function executeDOMEnhancements() {
 	}
 }
 
-function setAllPageTags(works) {
-	console.log('works', works)
+function setAllPageTags(worksX) {
+	// console.log('works', worksX)
+	const works = Array.isArray(worksX) ? worksX : Object.values(worksX)
 	currentPageTagsAndIllusts.length = 0
 	const newTags = Object.entries(
-		works.flatMap((w) => w.tags.map(t => [w.id, t])).filter(
-			([, tag]) => !tag.endsWith("users入り")
+		works
+			.flatMap((w) => w.tags.map(t => [w.id, t]))
+			.filter(([, tag]) => !tag.endsWith("users入り")
 		).reduce((r, [illustId, tag]) => Object.assign(r, { [tag]: (r[tag] || []).concat(illustId) }), {})
 	).sort(([, a], [, b]) => b.length - a.length)
-	console.log('newTags', newTags)
+	// console.log('newTags', newTags)
 	currentPageTagsAndIllusts.push(...newTags)
 	updateCurrentPageTags()
 }
 
 function updateCurrentPageTags() {
-	console.log('updateCurrentPageTags', currentPageTagsAndIllusts)
+	// console.log('updateCurrentPageTags', currentPageTagsAndIllusts)
 	if (!CRX.db.loaded) {
 		return setTimeout(updateCurrentPageTags, 2000);
 	}

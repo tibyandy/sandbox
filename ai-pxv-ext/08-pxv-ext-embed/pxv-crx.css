@@ -1,5 +1,5 @@
-img { opacity: 0 }
-._added { outline: ridge #0ff4 2px; }
+.img { opacity: 0 }
+._added { outline: ridge #0ff2 3px; }
 
 html, body {
   scrollbar-gutter: stable;
@@ -82,29 +82,88 @@ body {
     width: calc(100% / 7) !important;
 }
 /* Bookmarks Gallery */
-section div:has( > ul ) {
+section div:has( > ul ),
+div:has( > ul.crx_bookmarks_grid) {
     /*outline-color: #f00; outline-style: solid; outline-width: 4px;*/
     position: absolute;
     margin-top: -1px;
     right: 0;
-    width: calc(100% / 7 * 6) !important;
-    > ul {
-        width: 100% !important;
-        margin: 0 !important;
-        gap: 0;
-        > li {
-            width: calc(100% / 6) !important;
-            margin: 0 0 1px !important;
-            > div {
-                width: 100% !important;
-                position: relative;
-            }
+}
+section div:has( > ul ) {
+    width: calc(100% / 7 * 6) !important;    
+}
+div:has( > ul.crx_bookmarks_grid) {
+    width: 100% !important;
+}
+
+ul.crx_bookmarks_grid > li {
+    width: calc(100% / 7) !important;    
+}
+
+section div:has( > ul ) > ul > li {
+    width: calc(100% / 6) !important;
+}
+
+section div:has( > ul ) > ul, ul.crx_bookmarks_grid {
+    width: calc(100% / 8 * 7) !important;
+    margin: 0 auto !important;
+    gap: 0;
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    > li {
+        margin: 0 0 1px !important;
+
+        > div {
+            width: 100% !important;
+            position: relative;
         }
     }
 }
 
 /* Bookmarks Card */
-section div > ul > li div[width]:not(:has(a)) {
+section div > ul > li div[width]:not(:has(a)),
+ul.crx_bookmarks_grid > li div[width]:not(:has(a)) {
     div:not(:has(button)) {
         width: 100%;
         height: 100%;
@@ -115,9 +174,10 @@ section div > ul > li div[width]:not(:has(a)) {
         }
     }
 }
-section div > ul > li:has(div[width]):not(:has(a)) {
+section div > ul > li:has(div[width]):not(:has(a)),
+ul.crx_bookmarks_grid > li div[width]:not(:has(a)) {
     box-sizing: border-box;
-    padding: 1px;
+    padding: 1px !important;
     > div {
         background: #000;
         height: 100%;
@@ -131,14 +191,22 @@ section div > ul > li:has(div[width]):not(:has(a)) {
     }
 }
 
-section div > ul > li > div > div:has(> label) {
+ul.crx_bookmarks_grid li img {
+    width: 100%;
+    height: auto !important;
+    object-fit: fill !important;
+}
+
+section div > ul > li > div > div:has(> label),
+ul.crx_bookmarks_grid > li > div > div {
     /* 1st Div from Card */
     border-radius: 0 !important;
     margin: 1px;
 
     div[width] { /* Image Wrapper */
         width: 100% !important;
-        height: calc(100% / 8 + 12px) !important;
+        height: auto !important;
+        
         > a { /* thumbnail link */
             border: solid 1px #f00;
             border-color: #333 #000 #000 #333;
@@ -186,10 +254,6 @@ section div > ul > li > div > div:has(> label) {
             }
         }
     }
-}
-
-nav.charcoal-pagination {
-    margin-top: calc(100% / 7 * 8 - 44px);
 }
 
 .crx_work_tags { display: none }
@@ -261,4 +325,12 @@ nav.charcoal-pagination {
             margin-top: -2px;
         }
     } 
+}
+
+body:not(._user._illusts):not(._user._works) nav.charcoal-pagination {
+    margin-top: calc(100% / 7 * 8 - 44px);
+}
+body._user._illusts nav.charcoal-pagination,
+body._user._works nav.charcoal-pagination {
+    margin-top: calc(100% / 8 * 7 - 44px);
 }
