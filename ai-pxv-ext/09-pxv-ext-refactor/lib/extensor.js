@@ -1,129 +1,164 @@
-(() => {
-	const _chromeRuntimeUrl = document.currentScript.getAttribute('data-chrome-runtime-url')
-	const _appScript = document.currentScript.getAttribute('data-app-script')
-	const _modules = {}
-	const _eventQueue = []
+void function setupExtensor () {
+	overrideConsole()
+	console.debug('Ext:Core', 'initializing')
+	let initialized = false
 
-	const _getUrl = url => `${_chromeRuntimeUrl}${url}`;
-	const now = () => (performance.now() / 1000).toFixed(4);
+	const originalFetch = window.fetch
+	window.fetch = fetchWithEvents
+	console.debug('Ext:Core', 'window.fetch overridden')
+	
+	const chromeRuntimeUrl = document.currentScript.getAttribute('data-chrome-runtime-url')
+	const appScript = document.currentScript.getAttribute('data-app-script')	
+	const getUrl = buildGetUrl()
+	const extensorModules = {}
+	const extensorQueuedEvents = []
+	const Module = { get load () { return load } }
 
-	let _initialized = false
+	let unkModuleId = 1000
 
-	console.log('[Extensor] starting', performance.now())
-
-	_overrideWindowFetch();
-
-	const load = {
-		js: _loadJs,
-		css: _loadCss
-	}
-
-	window.Extensor = function Extensor () {
-		const opts = { _debug: true, _console: null }
-		const Ext = {
-			get now () { return now },
-			get console() { return module('Console') },
-			get debug () { return opts._debug },
-			set debug (debug) { opts._debug = debug; return Ext },
-			load, addModule, module, send, on
-		}
-		_init();
-		return Ext
-
-		async function _init () {
-			opts._console = await load.js('lib/extensor-console.js')
-			try {
-				await load.js(_appScript);
-				_initialized = true;
-			} catch (e) {
-				console.error(e)
-				send('error', Ext);
-			}
-			send('start', Ext);
+	window.Extensor = {
+		set Module (moduleFn) { return addModule(moduleFn) },
+		set Main (mainModule) { startMainModule(mainModule) },
+		get Module () { return Module },
+		get Modules () { return extensorModules },
+		loadCss,
+		on: onEvent,
+		send: sendEvent,
+		_: { // exposed internals, for debug purposes
+			originalFetch,
+			getUrl,
+			appScript,
+			modules: extensorModules,
+			queuedEvents: extensorQueuedEvents,
 		}
 	}
+	const Extensor = window.Extensor
+	console.debug('Ext:Core', `loading Main script "${appScript}"`)
+	Module.load(appScript)
+	return
 
-	function _overrideWindowFetch () {
-		const originalFetch = window.fetch;
-
-		window.fetch = async function(...args) {
-			const url = args[0]
-			const eventObject = { url, ...args[1] }
-			send('fetch-before', eventObject);
-			try {
-				const originalResponse = await originalFetch.apply(this, args);
-				const response = originalResponse.clone();
-				send('fetch-after', 'fetch-success', { url, response, ...eventObject });
-				return originalResponse;
-			} catch (error) {
-				send('fetch-after', 'fetch-error', { url, error, ...eventObject });
-				throw error;
-			}
+	async function startMainModule (main) {
+		try {
+			await addModule(main, true)
+			console.info('Ext:Core', 'successfully initialized')
+			initialized = true
+		} catch (e) {
+			console.error('Ext:Core', 'FATAL ERROR: could not run Main script\n', e)
 		}
-		console.log('[Extensor] fetch overridden', performance.now())
 	}
 
-	async function addModule (moduleName, moduleDef) {
-		_modules[moduleName] = moduleDef()
-		await _modules[moduleName]
-		console.debug(moduleName, 'Module activated')
-		send(['module-activated'], { moduleName });
+	function overrideConsole () {
+		const { log, debug, info, error, warn } = console
+		const now = () => (performance.now() / 1000).toFixed(4);
+
+		const bold = '; font-weight: bold'
+		const green = 'color: #00cc99' + bold
+		const blue = 'color: #0099cc' + bold
+		const orange = 'color: #cc9900' + bold
+		const purple = 'color: #aa3399' + bold
+		const formatString = {
+			get short () { return `${now()} %s` },
+			get complete () { return `%c${now()} %c[%s]` }
+		}
+
+		Object.defineProperties(console, {
+			log: { get: () => log.bind(console, formatString.short) },
+			debug: { get: () => debug.bind(console, formatString.complete, green, blue) },
+			info: { get: () => info.bind(console, formatString.complete, green, blue) },
+			warn: { get: () => warn.bind(console, formatString.complete, orange, purple) },
+			error: { get: () => error.bind(console, formatString.complete, orange, purple) },
+		});
+		Object.freeze(console);
 	}
 
-	function module (moduleName) {
-		return _modules[moduleName]
+	function buildGetUrl () {
+		return url => `${chromeRuntimeUrl}${url}`
 	}
 
-	function send(...args) {
-		if (args.lengths < 2) throw Error('Expected at least 2 args: (...eventNames, data)')
+	async function fetchWithEvents(...args) {
+		const url = args[0]
+		const eventObject = { url, ...args[1] }
+		Extensor.send('fetch-before', eventObject);
+		try {
+			const originalResponse = await originalFetch.apply(this, args);
+			const response = originalResponse.clone();
+			Extensor.send('fetch-after', 'fetch-success', { url, response, ...eventObject });
+			return originalResponse;
+		} catch (error) {
+			Extensor.send('fetch-after', 'fetch-error', { url, error, ...eventObject });
+			throw error;
+		}
+	}
+
+	async function addModule (moduleNamedFn, isMain) {
+		const moduleName = moduleNamedFn.name || ('UnknownModule' + ++unkModuleId)
+		const logModuleName = isMain ? 'Ext:Main' : `Mod:${moduleName}`
+		console[isMain ? 'info' : 'debug'](logModuleName, `executing`)
+		try {
+			extensorModules[moduleName] = await moduleNamedFn(Extensor)
+			console.info(logModuleName, 'successfully activated')
+			sendEvent(['module-activated'], { moduleName });
+		} catch (e) {
+			console.error(logModuleName, 'ERROR: could not activate\n', e)
+		}
+	}
+
+	function sendEvent (...args) {
+		if (args.lengths < 2) {
+			console.error('Ext:Core', 'send', 'Expected at least 2 args: (...eventNames, data)')
+			return
+		}
 		const data = args.pop()
 		const eventNames = args
-		eventNames.map(eventName => _sendEvent(eventName, data))
+		eventNames.map(eventName => sendSingleEvent(eventName, data))
 	}		
 
-	function on (...args) {
-		if (args.lengths < 2) throw Error('Expected at least 2 args: (...eventNames, callback)')
+	function onEvent (...args) {
+		if (args.lengths < 2) {
+			console.error('Ext:Core', 'on', 'Expected at least 2 args: (...eventNames, callback)')
+			return
+		}
 		const callback = args.pop()
 		const eventNames = args
-		eventNames.map(eventName => _onEvent(eventName, callback))
+		eventNames.map(eventName => onSingleEvent(eventName, callback))
 	}
 
-	function _sendEvent (eventName, data) {
-		_eventQueue.push(new CustomEvent('crx:' + eventName, { detail: data }))
-		if (_initialized) {
-			for (const event of _eventQueue) {
+	function sendSingleEvent (eventName, data) {
+		extensorQueuedEvents.push(new CustomEvent('crx:' + eventName, { detail: data }))
+		if (initialized) {
+			for (const event of extensorQueuedEvents) {
 				window.dispatchEvent(event);
 			}
-			_eventQueue.length = 0
+			extensorQueuedEvents.length = 0
 		}
 	}		
 
-	function _onEvent (eventName, callback) {
+	function onSingleEvent (eventName, callback) {
 		window.addEventListener('crx:' + eventName, e => callback(e.detail, e));
 	}
 
-	function _loadJs (scriptUrl) {
+	function load (...scriptUrls) {
+		return Promise.all(scriptUrls.map(loadJs))
+	}
+
+	function loadJs (scriptUrl) {
 		return new Promise((resolve, reject) => {
 			const script = document.createElement('script');
-			script.src = _getUrl(scriptUrl);
+			script.src = getUrl(scriptUrl);
 			script.onload = () => { script.remove(); resolve(script) }
 			script.onerror = () => { script.remove(); reject(script) }
-			(document.head || document.documentElement).prepend(script);
+			const elem = (document.head || document.documentElement)
+			if (!elem) {
+				console.error('Ext:Core', 'ERROR: cannot add script!\n', script.src)
+			}
+			elem.prepend(script);
 		})
 	}
 
-	function _loadCss (cssUrl) {
+	function loadCss (cssUrl) {
 		const link = document.createElement('link');
 		link.rel = 'stylesheet';
-		link.href = _getUrl(cssUrl);
+		link.href = getUrl(cssUrl);
 		(document.head || document.documentElement).appendChild(link);
 	}
-
-	Extensor.module = module
-	Extensor.addModule = addModule
-	Extensor.send = send
-	Extensor.on = on
-	Extensor.load = load
-	// Object.defineProperties(Extensor, { 'console': { get: () => module('Console') } });
-	Extensor()
-})()
+}()

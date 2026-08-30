@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Pxtrav",
-  "version": "0.3.0",
-  "description": "Refactor Merged",
+  "name": "Pxtra!",
+  "version": "0.4.2",
+  "description": "Built With Extensor",
   "host_permissions": [
     "https://*.pixiv.net/*",
     "https://script.google.com/*",
@@ -18,11 +18,7 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "main.css",
-        "main.js",
-        "lib/extensor.js",
-        "lib/extensor-console.js",
-        "lib/extensor-db.js"
+        "*"
       ],
       "matches": ["https://*.pixiv.net/*"]
     }

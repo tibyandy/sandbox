@@ -1,11 +1,12 @@
-console.debug('main', 'Script loaded')
+Extensor.Main = async ({ on, loadCss, Module, ...Ext }) => {
+	on('fetch-before', data => console.debug('before', data));
+	on('fetch-error', data => console.debug('error', data.url, data.error));
+	on('fetch-success', data => console.debug('success', data));
 
-Extensor.on('start', Ext => {
-	console.debug('main', 'App activated')
-	Ext.load.css('main.css')
-	console.debug('main', 'App started')
-})
-
-Extensor.on('fetch-before', data => console.debug('fetch', 'before', data));
-Extensor.on('fetch-error', data => console.debug('fetch', 'error', data.url, data.error));
-Extensor.on('fetch-success', data => console.debug('fetch', 'success', data));
+	loadCss('main.css')
+	await Module.load(
+		'extension/router.js',
+		'extension/dom-change-listener.js',
+	 	'extension/location-change-listener.js'
+	)
+}
