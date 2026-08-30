@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "Pxtrav",
+  "version": "0.3.0",
+  "description": "Refactor Merged",
+  "host_permissions": [
+    "https://*.pixiv.net/*",
+    "https://script.google.com/*",
+    "https://script.googleusercontent.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://*.pixiv.net/*"],
+      "js": ["boot.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "main.css",
+        "main.js",
+        "lib/extensor.js",
+        "lib/extensor-console.js",
+        "lib/extensor-db.js"
+      ],
+      "matches": ["https://*.pixiv.net/*"]
+    }
+  ]
+}
