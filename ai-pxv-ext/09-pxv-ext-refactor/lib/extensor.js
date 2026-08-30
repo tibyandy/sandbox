@@ -56,13 +56,14 @@ void function setupExtensor () {
 		const blue = 'color: #0099cc' + bold
 		const orange = 'color: #cc9900' + bold
 		const purple = 'color: #aa3399' + bold
+		const auto = 'color: auto'
 		const formatString = {
-			get short () { return `${now()} %s` },
+			get short () { return `%c${now()}%c %s` },
 			get complete () { return `%c${now()} %c[%s]` }
 		}
 
 		Object.defineProperties(console, {
-			log: { get: () => log.bind(console, formatString.short) },
+			log: { get: () => log.bind(console, formatString.short, purple, auto) },
 			debug: { get: () => debug.bind(console, formatString.complete, green, blue) },
 			info: { get: () => info.bind(console, formatString.complete, green, blue) },
 			warn: { get: () => warn.bind(console, formatString.complete, orange, purple) },

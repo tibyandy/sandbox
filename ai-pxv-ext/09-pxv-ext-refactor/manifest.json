@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Pxtra!",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "Built With Extensor",
   "host_permissions": [
     "https://*.pixiv.net/*",
