@@ -12,15 +12,16 @@ void function setupExtensor () {
 	const getUrl = buildGetUrl()
 	const extensorModules = {}
 	const extensorQueuedEvents = []
-	const Module = { get load () { return load } }
-
 	let unkModuleId = 1000
+	const Module = function (name) {
+		return extensorModules[name]
+	}
+	Module.load = load
 
-	window.Extensor = {
+	const Extensor = window.Extensor = {
 		set Module (moduleFn) { return addModule(moduleFn) },
 		set Main (mainModule) { startMainModule(mainModule) },
 		get Module () { return Module },
-		get Modules () { return extensorModules },
 		loadCss,
 		on: onEvent,
 		send: sendEvent,
@@ -32,15 +33,15 @@ void function setupExtensor () {
 			queuedEvents: extensorQueuedEvents,
 		}
 	}
-	const Extensor = window.Extensor
-	console.debug('Ext:Core', `loading Main script "${appScript}"`)
-	Module.load(appScript)
+	console.info('Ext:Core', `loading Main script "${appScript}"`)
+	load(appScript)
 	return
 
 	async function startMainModule (main) {
 		try {
 			await addModule(main, true)
 			console.info('Ext:Core', 'successfully initialized')
+			Extensor.send('initialize', appScript);
 			initialized = true
 		} catch (e) {
 			console.error('Ext:Core', 'FATAL ERROR: could not run Main script\n', e)
@@ -96,7 +97,7 @@ void function setupExtensor () {
 		const logModuleName = isMain ? 'Ext:Main' : `Mod:${moduleName}`
 		console[isMain ? 'info' : 'debug'](logModuleName, `executing`)
 		try {
-			extensorModules[moduleName] = await moduleNamedFn(Extensor)
+			extensorModules[moduleName] = await moduleNamedFn(window.Extensor)
 			console.info(logModuleName, 'successfully activated')
 			sendEvent(['module-activated'], { moduleName });
 		} catch (e) {
@@ -128,13 +129,21 @@ void function setupExtensor () {
 		extensorQueuedEvents.push(new CustomEvent('crx:' + eventName, { detail: data }))
 		if (initialized) {
 			for (const event of extensorQueuedEvents) {
-				window.dispatchEvent(event);
+				console.debug('event', event)
+				setTimeout(() => {
+					try {
+						window.dispatchEvent(event)
+					} catch (e) {
+						console.error('event', 'cannot dispatch', event, '\n', e)
+					}
+				})
 			}
 			extensorQueuedEvents.length = 0
 		}
 	}		
 
 	function onSingleEvent (eventName, callback) {
+		console.debug('on', eventName, callback)
 		window.addEventListener('crx:' + eventName, e => callback(e.detail, e));
 	}
 

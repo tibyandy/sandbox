@@ -1,4 +1,5 @@
-Extensor.Module = function Router (Ext) {
+Extensor.Module = function Router ({ on, send }) {
+	on('location-change', locationChanged)
 	const pathsAndRoutes = (
 		[	['^/(?:[a-z]{2}/)?artworks/\\d+',                    'art/cover'            ],
 			['^/(?:[a-z]{2}/)?artworks/\\d+#.+',                 'art/slideshow'        ],
@@ -39,12 +40,11 @@ Extensor.Module = function Router (Ext) {
 		)
 	)
 
-	const allBodyRouteClasses = ['crx_body', ...new Set(pathsAndRoutes.flatMap(route => route.classes))]
+	const allBodyClasses = ['crx_body', ...new Set(pathsAndRoutes.flatMap(route => route.classes))]
 
 	const _ = {
 		currHref: null,
-		pathsAndRoutes,
-		allBodyRouteClasses
+		pathsAndRoutes
 	}
 
 	const Router = {
@@ -54,7 +54,9 @@ Extensor.Module = function Router (Ext) {
 				sendRouteChangeEvent(href)
 			}
 			_.currHref = href
-		} 
+		},
+		allBodyClasses,
+		currentRoute: null
 	}
 
 	return Router
@@ -62,29 +64,20 @@ Extensor.Module = function Router (Ext) {
 	function Route (regExp, path, classes) {
 		this.regExp = regExp;
 		this.path = path;
-		this.classes = classes;
+		this.classes = ['crx_body', ...classes];
 	}
 
-	function sendRouteChangeEvent(currHref) {
-		const currUrl = new Url(currHref)
+	function locationChanged (currHref) {
+		const currUrl = new URL(currHref)
 		const currentPath = currUrl.pathname + currUrl.search + currUrl.hash;
-		const route = findRoute(currentPath);
+		const route = Router.currentRoute = findRoute(currentPath);
 		if (!route) {
 			console.error('Router', `Route not found for Path ${currentPath}`)
-			return
 		}
-
-		const { classes, path } = route
-		if (currentPath.includes(`users/${SPECIAL_USER_ID}/`)) classes.push('my');
-		document.body.classList.add('crx_body', ...classes);
-	}
-
-	function cleanAllBodyRouteClasses () {
-		const removeBodyClass = document.body.classList.remove
-		allBodyRouteClasses.forEach(removeBodyClass)
+		send('route-changed', { route, allBodyClasses })
 	}
 
 	function findRoute (currPath) {
-		return pathsAndRoutes.find(regExp => regExp.test(currPath)) || {}
+		return pathsAndRoutes.find(({ regExp }) => regExp.test(currPath)) || {}
 	}
 }

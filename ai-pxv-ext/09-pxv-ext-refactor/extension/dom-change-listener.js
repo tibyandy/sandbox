@@ -4,8 +4,11 @@ Extensor.Module = function DomChangeListener ({ send }) {
 	return { checkMutations }
 
 	function init () {
-		new MutationObserver(checkMutations)
-		checkMutations()
+		new MutationObserver(checkMutations).observe(
+			document.body || document.documentElement,
+			{ childList: true, subtree: true }
+		)
+		checkMutations({})
 	}
 
 	function checkMutations (mutations) {
@@ -13,6 +16,5 @@ Extensor.Module = function DomChangeListener ({ send }) {
 		const locationChanged = lastHref !== currHref
 		lastHref = currHref
 		if (locationChanged) send('location-change', currHref)
-		return locationChanged
 	}
 }

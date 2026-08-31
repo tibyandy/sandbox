@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Pxtra!",
-  "version": "0.4.3",
-  "description": "Built With Extensor",
+  "version": "0.5.0",
+  "description": "Page Path now shows on Pxtra! banner",
   "host_permissions": [
     "https://*.pixiv.net/*",
     "https://script.google.com/*",

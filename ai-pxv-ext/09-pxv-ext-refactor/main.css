@@ -1,2 +1,49 @@
 /* CSS */
-body { }
+body {
+	&:not(.crx_body) { --path: '?' }
+	&.art.slideshow { --path: 'art/slideshow' }
+	&.art.cover { --path: 'art/cover' }
+	&.artfav.detail { --path: 'artfav/detail' }
+	&.artfav.edit { --path: 'artfav/edit' }
+	&.my.hist { --path: 'my/hist' }
+	&.my.dash { --path: 'my/dash' }
+	&.myfol.cols { --path: 'myfol/cols' }
+	&.myfol.works { --path: 'myfol/works' }
+	&.mypix.works { --path: 'mypix/works' }
+	&.mywatch.mangas { --path: 'mywatch/mangas' }
+	&.mywatch.novels { --path: 'mywatch/novels' }
+	&.recent.works { --path: 'recent/works' }
+	&.user.favs.cols { --path: 'user/favs/cols' }
+	&.user.favs.novels { --path: 'user/favs/novels' }
+	&.user.favs { --path: 'user/favs' }
+	&.user.fols { --path: 'user/fols' }
+	&.user.illusts { --path: 'user/illusts' }
+	&.user.mangas { --path: 'user/mangas' }
+	&.user.reqs { --path: 'user/reqs' }
+	&.user.series { --path: 'user/series' }
+	&.user.works { --path: 'user/works' }
+	&.user.home { --path: 'user/home' }
+	&.search.illusts { --path: 'search/illusts' }
+	&.search.mangas { --path: 'search/mangas' }
+	&.search.works { --path: 'search/works' }
+	&.search.tags { --path: 'search/tags' }
+	&.search.words { --path: 'search/words' }
+	&.top.discovery { --path: 'top/discovery' }
+	&.top.novels { --path: 'top/novels' }
+	&.top.recom.illusts { --path: 'top/recom/illusts' }
+	&.top.recom.mangas { --path: 'top/recom/mangas' }
+	&.top.home { --path: 'top/home' }
+
+	img[alt="pixiv"] {
+		display: none;
+	}
+
+	*:has(> img[alt="pixiv"]) {
+		&::before {
+			font-size: 20px;
+			color: #0096fa;
+			content: var(--path);
+			font-weight: bold;
+		}
+	}
+}
