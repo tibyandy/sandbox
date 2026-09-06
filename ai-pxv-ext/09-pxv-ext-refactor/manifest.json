@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Pxtra!",
-  "version": "0.5.3",
-  "description": "SheetDB with inspector logs",
+  "version": "0.5.4",
+  "description": "SheetDB with illust, user, tags",
   "host_permissions": [
     "https://*.pixiv.net/*",
     "https://script.google.com/*",
