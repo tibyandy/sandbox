@@ -6,9 +6,9 @@ void function setupExtensor () {
 	const originalFetch = window.fetch
 	window.fetch = fetchWithEvents
 	console.debug('Ext:Core', 'window.fetch overridden')
-	
+
 	const chromeRuntimeUrl = document.currentScript.getAttribute('data-chrome-runtime-url')
-	const appScript = document.currentScript.getAttribute('data-app-script')	
+	const appScript = document.currentScript.getAttribute('data-app-script')
 	const getUrl = buildGetUrl()
 	const extensorModules = {}
 	const extensorQueuedEvents = []
@@ -113,7 +113,7 @@ void function setupExtensor () {
 		const data = args.pop()
 		const eventNames = args
 		eventNames.map(eventName => sendSingleEvent(eventName, data))
-	}		
+	}
 
 	function onEvent (...args) {
 		if (args.lengths < 2) {
@@ -129,7 +129,7 @@ void function setupExtensor () {
 		extensorQueuedEvents.push(new CustomEvent('crx:' + eventName, { detail: data }))
 		if (initialized) {
 			for (const event of extensorQueuedEvents) {
-				console.debug('event', event)
+				// console.debug('event', event)
 				setTimeout(() => {
 					try {
 						window.dispatchEvent(event)
@@ -140,10 +140,10 @@ void function setupExtensor () {
 			}
 			extensorQueuedEvents.length = 0
 		}
-	}		
+	}
 
 	function onSingleEvent (eventName, callback) {
-		console.debug('on', eventName, callback)
+		// console.debug('on', eventName, callback)
 		window.addEventListener('crx:' + eventName, e => callback(e.detail, e));
 	}
 

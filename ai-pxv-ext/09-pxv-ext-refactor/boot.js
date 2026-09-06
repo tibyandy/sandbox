@@ -14,6 +14,20 @@ console.debug(...log(), 'start')
 document.addEventListener('DOMContentLoaded', () => console.info(...log(), `loaded "${location.href}"`));
 window.addEventListener('load', () => console.info(...log(), 'loaded all page content'));
 
+window.addEventListener('message', ({ source, data }) => {
+  if (source !== window || !data || data.type !== 'PXTRA_DB_REQUEST') return
+  const { action, payload, requestId } = data;
+  chrome.runtime.sendMessage({ action, payload }, response => {
+    window.postMessage({ type: 'PXTRA_DB_RESPONSE', requestId, response }, '*');
+  });
+});
+
+chrome.runtime.onMessage.addListener((request) => {
+  if (request.action === "PXTRA_LOG") {
+    window.postMessage({ type: "PXTRA_SW_LOG", request }, "*");
+  }
+});
+
 start(CONFIG)
 
 function start (CONFIG) {
