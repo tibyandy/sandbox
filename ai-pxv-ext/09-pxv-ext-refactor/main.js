@@ -1,30 +1,38 @@
-void function main() {
+void function MainModule() {
 	let DB
 	let illustPageData
 	let illustPageHref
 	let bookmarkingThisPageIllust = false
+	let send
+	window.worksById = {}
 
 	Extensor.loadCss('main.css')
 
-	Extensor.Main = async ({ on, loadCss, Module, ...Ext }) => {
+	Extensor.Main = async ({ on, loadCss, Module, send: _send, ...Ext }) => {
+		send = _send
 		on('fetch-before', ({ url, ...data }) => {
-			if (!url.startsWith('/ajax')) return
-			console.debug('before', url, data)
+			try {
+				if (typeof url === 'string' && !url.startsWith('/ajax')) return
+			} catch (e) {
+				console.error('fetch-before', url, typeof url)
+				return
+			}
+			console.debug('fetch-before', url, data)
 			if (url === '/ajax/illusts/bookmarks/add') {
 				data = JSON.parse(data.body)
-				console.debug('before Body', url, data)
+				console.debug('fetch-before', 'Body', url, data)
 				const illust_id = data?.illust_id
 				if (illust_id == location.href.replaceAll(/(\?|\#).*/g, '').split('/').slice(-1)) {
-					console.info('Bookmarking this illust!', illust_id)
+					console.info('fetch-before', 'Bookmarking this illust!', illust_id)
 					bookmarkingThisPageIllust = true
 				} else {
-					console.info('Bookmarking another illust!', illust_id)
+					console.info('fetch-before', 'Bookmarking another illust!', illust_id)
 					bookmarkingThisPageIllust = false
 				}
 			}
 		})
 		// on('fetch-error', data => console.debug('error', data.url, data.error))
-		on('fetch-success', parser)
+		on('fetch-success', parseFetchSuccess)
 
 		await Module.load(
 			'extension/router.js',
@@ -35,7 +43,7 @@ void function main() {
 		DB = Extensor.Module('SheetDatabase')
 	}
 
-	async function parser({ url, response, ...eventObject }) {
+	async function parseFetchSuccess({ url, response, ...eventObject }) {
 		if (!url.startsWith('/ajax')) return
 
 		const json = await response.json().catch(e => {
@@ -45,6 +53,7 @@ void function main() {
 		if (!json) return
 
 		try {
+			extractIllustWorks(url, json)
 			const extractedBookmarkId = extractBookmarkId(url, json)
 			const extractedData = extractIllustData(json)
 			if (extractedData?.bookmarkId) {
@@ -193,10 +202,11 @@ void function main() {
 		return illustPageData
 	}
 
-	window.addEventListener("message", (event) => {
-		if (event.data && event.data.type === "PXTRA_SW_LOG") {
-			const { type, message } = event.data.request.data
-			console[type]('Ext:Worker', ...message)
-		}
-	})
+	function extractIllustWorks (url, json) {
+		if (!json.body?.works?.[0]?.id) return
+		json.body.works.forEach(work => worksById[work.id] = work)
+		send('works-loaded', worksById)
+	}
+
+	console.info('Ext:MainModule', 'setup complete')
 }()

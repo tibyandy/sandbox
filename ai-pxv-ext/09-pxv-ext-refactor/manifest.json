@@ -1,28 +1,31 @@
 {
   "manifest_version": 3,
   "name": "Pxtra!",
-  "version": "0.5.5",
-  "description": "SheetDB with illust, user, tags + categs",
+  "version": "0.6.0",
+  "description": "SheetDB with config page",
   "host_permissions": [
     "https://*.pixiv.net/*",
     "https://script.google.com/*",
     "https://script.googleusercontent.com/*"
   ],
-  "content_scripts": [
-    {
-      "matches": ["https://*.pixiv.net/*"],
-      "js": ["boot.js"],
-      "run_at": "document_start"
+  "permissions": [ "tabs" ],
+  "content_scripts": [ {
+    "matches": ["https://*.pixiv.net/*"],
+    "js": ["boot.js"],
+    "run_at": "document_start"
+  } ],
+  "commands": {
+    "open_settings": {
+      "suggested_key": { "default": "Alt+C", "mac": "Alt+C" },
+      "description": "Configurações"
     }
-  ],
+  },
   "background": {
     "service_worker": "service-worker.js"
   },
   "web_accessible_resources": [
     {
-      "resources": [
-        "*"
-      ],
+      "resources": [ "*" ],
       "matches": ["https://*.pixiv.net/*"]
     }
   ]

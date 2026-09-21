@@ -1,11 +1,11 @@
 void function setupExtensor () {
 	overrideConsole()
-	console.debug('Ext:Core', 'initializing')
+	console.info('Extensor', 'Setting up!')
 	let initialized = false
 
 	const originalFetch = window.fetch
 	window.fetch = fetchWithEvents
-	console.debug('Ext:Core', 'window.fetch overridden')
+	console.debug('Extensor', 'window.fetch overridden')
 
 	const chromeRuntimeUrl = document.currentScript.getAttribute('data-chrome-runtime-url')
 	const appScript = document.currentScript.getAttribute('data-app-script')
@@ -13,7 +13,7 @@ void function setupExtensor () {
 	const extensorModules = {}
 	const extensorQueuedEvents = []
 	let unkModuleId = 1000
-	const Module = function (name) {
+	const Module = function ExtensorModule (name) {
 		return extensorModules[name]
 	}
 	Module.load = load
@@ -33,18 +33,18 @@ void function setupExtensor () {
 			queuedEvents: extensorQueuedEvents,
 		}
 	}
-	console.info('Ext:Core', `loading Main script "${appScript}"`)
+	console.info('Extensor', 'Activating main script "${appScript}"')
 	load(appScript)
 	return
 
 	async function startMainModule (main) {
 		try {
 			await addModule(main, true)
-			console.info('Ext:Core', 'successfully initialized')
+			console.info('Extensor', 'Successfully initialized')
 			Extensor.send('initialize', appScript);
 			initialized = true
 		} catch (e) {
-			console.error('Ext:Core', 'FATAL ERROR: could not run Main script\n', e)
+			console.error('Extensor', 'FATAL ERROR: could not run Main script\n', e)
 		}
 	}
 
@@ -60,7 +60,7 @@ void function setupExtensor () {
 		const auto = 'color: auto'
 		const formatString = {
 			get short () { return `%c${now()}%c %s` },
-			get complete () { return `%c${now()} %c[%s]` }
+			get complete () { return `%c${now()} %c[%s] %s` }
 		}
 
 		Object.defineProperties(console, {
@@ -94,11 +94,11 @@ void function setupExtensor () {
 
 	async function addModule (moduleNamedFn, isMain) {
 		const moduleName = moduleNamedFn.name || ('UnknownModule' + ++unkModuleId)
-		const logModuleName = isMain ? 'Ext:Main' : `Mod:${moduleName}`
-		console[isMain ? 'info' : 'debug'](logModuleName, `executing`)
+		const logModuleName = isMain ? 'Ext:MainModule' : `Mod:${moduleName}`
+		console[isMain ? 'info' : 'debug'](logModuleName, 'Setting up')
 		try {
 			extensorModules[moduleName] = await moduleNamedFn(window.Extensor)
-			console.info(logModuleName, 'successfully activated')
+			console.info(logModuleName, 'Embedded successfully!')
 			sendEvent(['module-activated'], { moduleName });
 		} catch (e) {
 			console.error(logModuleName, 'ERROR: could not activate\n', e)
@@ -107,7 +107,7 @@ void function setupExtensor () {
 
 	function sendEvent (...args) {
 		if (args.lengths < 2) {
-			console.error('Ext:Core', 'send', 'Expected at least 2 args: (...eventNames, data)')
+			console.error('Extensor', 'send', 'Expected at least 2 args: (...eventNames, data)')
 			return
 		}
 		const data = args.pop()
@@ -117,7 +117,7 @@ void function setupExtensor () {
 
 	function onEvent (...args) {
 		if (args.lengths < 2) {
-			console.error('Ext:Core', 'on', 'Expected at least 2 args: (...eventNames, callback)')
+			console.error('Extensor', 'on', 'Expected at least 2 args: (...eventNames, callback)')
 			return
 		}
 		const callback = args.pop()
@@ -159,7 +159,7 @@ void function setupExtensor () {
 			script.onerror = () => { script.remove(); reject(script) }
 			const elem = (document.head || document.documentElement)
 			if (!elem) {
-				console.error('Ext:Core', 'ERROR: cannot add script!\n', script.src)
+				console.error('Extensor', 'ERROR: cannot add script!\n', script.src)
 			}
 			elem.prepend(script);
 		})

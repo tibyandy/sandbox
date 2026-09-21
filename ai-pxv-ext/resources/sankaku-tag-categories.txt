@@ -1,0 +1,21 @@
+Fashion (Fashion): Can include tags related to clothing, accessories, and other articles attached to the body of an entity (armour, tattoos, hair, etc.), or not attached (hair_ornament, red_shirt, etc.).
+Artist (Artist): Artist tags identify the tag as the artist. This does not mean the artist of the original character or franchise, but the creator of the specific work in the post. When tagging something, the tag can be specified as an artist tag by prefixing it with "artist:". For example, tagging something "artist:mark tree" will tag a post with mark and tree. If the mark tag doesn't already exist, it will be created with the tag type set to artist.
+Studio (Studio): Animation studios, publishers, video game developers, and doujin circles –basically everyone who works on or creates franchises– should be typed as studios. For example screen capture and game cg, have to be tagged with the proper studio to identify their origin. Like other tag types, the use of "studio:" will change the tag type to studio.
+General (General): Descriptions of what the image depicts.
+Franchise (Franchise): The copyright type indicates the tag represents franchises like an anime, a game, a novel, or some sort of copyrighted setting. Otherwise they work identically to character and artist tags, only prefixed with "copyright:" instead (or "copy:").
+Character (Character): Character tags identify the tag as a character. They work exactly like artist tags, only prefixed with "character:" (or "char:").
+Genre (Genre): This is a type of "master parent" tag that identifies a broad artistic form (like gyaru) or topic (like yuri).
+Medium (Medium): This covers tags describing a medium (like watercolor or dakimakura) or format (transparent background, animated, flash, wallpaper, censored, aspect ratio, etc.). This type can be assigned the usual way.
+Role (Role): Role or archetype a humanoid depicted in the content embodies - samurai, gymnast, teacher, etc.
+Anatomy (Anatomy): Body parts, anatomical features, sex [male/female]. Includes breasts, female, penis, etc.
+Pose (Pose): Specific poses wariza, postures, stances, etc., adopted by a given entity, using all or part of their body.
+Activity (Activity): Specific activities (swimming, running, etc.), practices or states of being.
+Flora (Flora): For plants (grass, red_flower..), fungi (mushroom), etc.
+Fauna (Fauna): For animals (cat, dog, fox, etc.) and monsters.
+Entity (Entity): For other animate entities, such as robots, spirits (ghost), etc.
+Object (Object): For inanimate objects that are prominent within the content, like sword, spaceship, vibrator, etc.
+Substance (Substance): Covers materials that are not solid and do not form discrete items, including both fluids and particulates - blood, oil, semen, sweat, mist, water.
+Setting (Setting): Tags describing the location or setting, like school, space station, bedroom, etc.
+Language (Language): Represents the various languages found within the content, like english_language, korean_language, etc.
+Automatic (Automatic): Tags that are programmatically determined whether or not to be added to content upon creation or at the time of editing. Includes high_resolution, greyscale, video, has_audio, and more.
+Meta (Meta): This covers tags which provide site-related or contextual information about the post rather than the image itself. For example, tagme indicates that the post needs tags, translation request that it needs translated, etc. This type can be assigned the usual way.

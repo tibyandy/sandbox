@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+	<meta charset='utf-8'>
+	<meta name='viewport' content='width=device-width, initial-scale=1'>
+	<title>Pxtra! Settings</title>
+	<style>
+	body {
+		background: #000;
+		color: #fff;
+  }
+	details > div {
+		display: flex;
+		flex-wrap: wrap;
+	}
+	details > div > div {
+		width: 280px;
+		display: grid;
+		background: #222;
+		margin: 4px;
+		padding: 4px;
+		overflow-x: auto;
+		scrollbar-width: none;
+		white-space: nowrap;
+		grid: "a a a a" "z z z z" "b c d e" / 1fr 1fr 1fr 100%;
+	}
+	span { padding: 0 6px 0 0 }
+	span:first-child { grid-area: a }
+	span:last-child { grid-area: z }
+	details > div > div::-webkit-scrollbar { display: none; }
+	h1 { display: inline; font-size: 14px; cursor: pointer; }
+	.keys {
+			list-style: none;
+			display: flex;
+			position: fixed;
+			left: 0;
+			bottom: 0;
+			padding: 0 0 0 4px;
+			gap: 1.5ch;
+			margin: 0;
+			background: #222;
+			right: 0;
+			z-index: 1;
+			border-top: solid 1px #ccc;
+	}
+	.keys li:not(.sep) {
+		padding: 2px 0;
+	}
+	.keys b {
+    background: #000;
+    border-radius: 4px;
+    color: #4c7;
+    padding: 0 1px;
+	}
+	.keys .sep {
+    border-left: solid 1px #ccc;
+    margin: 0 0 0 2px;
+	}
+	.cardgroup div:hover { border-color: #ccc }
+	.cardgroup div {
+		border: solid 1px transparent;
+    border-radius: 8px;
+    box-shadow: 80px -60px 80px #111e inset;
+	}
+	div.selected { background: gray }
+	div.character { background: khaki }
+	div.series { background: limegreen }
+	div.fetish { background: mediumpurple }
+	div.general { background: orange }
+	div.other { background: cornflowerblue }
+	div.reset { background: red }
+
+	.cardgroup > div[class] > .group { font-size: 0; }
+	.cardgroup > div > .group::before { font-size: 12px; font-weight: bold }
+	.cardgroup > div.character .group::before { content: 'character'; color: khaki }
+	.cardgroup > div.series .group::before { content: 'series'; color: limegreen }
+	.cardgroup > div.fetish .group::before { content: 'fetish'; color: mediumpurple }
+	.cardgroup > div.general .group::before { content: 'general'; color: orange }
+	.cardgroup > div.other .group::before { content: 'other'; color: cornflowerblue }
+	.cardgroup > div.reset .group::before { content: 'reset'; color: red }
+
+	#floater { position: fixed; right: 0; bottom: 0; top: 0; margin: 0; padding: 0; list-style-type: none; text-align: right; line-height: 14px; }
+	li span.character { color: khaki }
+	li span.series { color: limegreen }
+	li span.fetish { color: mediumpurple }
+	li span.general { color: orange }
+	li span.other { color: cornflowerblue }
+	li span.reset { color: red }
+	summary:focus {
+		outline: none;
+	}
+span {
+    color: #ccc;
+}
+span.data:empty::before {
+    content: "\a0";
+}
+div > span[class]:first-child::before {
+	content: '#';
+	font-weight: bold;
+	color: #fff;
+}
+span.tag {
+	color: #8af;
+}
+span.enTag {
+	color: #fd8;
+}
+	</style>
+</head>
+<body>
+	<script src="config.js"></script>
+</body>
+</html>

@@ -207,3 +207,11 @@ async function logToTabs(type, ...message) {
     logToTabs('error', 'Error sending log:', err)
   }
 }
+
+
+chrome.commands.onCommand.addListener((command) => {
+  if (command === "open_settings") {
+    const targetPage = "cfg/config.html";
+    chrome.tabs.create({ url: targetPage });
+  }
+});

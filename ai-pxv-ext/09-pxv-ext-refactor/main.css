@@ -1,4 +1,100 @@
-/* CSS */
+._human {
+    width: 22.5px;
+    margin-left: -3px;
+    color: #fe6;
+    line-height: 10px;
+    font-size: 22px;
+    -webkit-text-stroke: 1px #000;
+    paint-order: fill stroke;
+	text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px  1px 0 black, 1px  1px 0 black;
+}
+
+a[data-ga4-label="title_link"]:visited {color: #83c;}
+
+aside:has(div[data-gtm-recommend-zone]) section {
+	position: absolute;
+	left: 0;
+	right: 0;
+	width: 100%;
+	padding-top: 0;
+}
+div:has(+ div[data-gtm-recommend-zone]) {
+	justify-content: center !important;
+	h2 { width: calc(226px * 6 + 16px * 5); }
+}
+
+div[data-gtm-recommend-zone] > div {
+	display: flex; justify-content: center;
+}
+
+/* Bookmarks */
+.crx_body.user.favs {
+	div:has(> section a[data-ga4-label="thumbnail_link"]) {
+		padding-left: 0;
+		padding-right: 0;
+		width: calc(226px * 6 + 16px * 5) !important;
+	}
+}
+
+/* Illustrations and Manga */
+.crx_body.user section + div:has(ul),
+.crx_body.user ul {
+	width: calc(226px * 6 + 16px * 5) !important;
+	padding: 0;
+}
+
+/* Works */
+.crx_body.user div:has(a[data-ga4-label="thumbnail_link"]) {
+	/* Thumb Grid */
+	div:has(> ul),
+	div:has(> div > ul),
+	div:has(> div > div > ul),
+	div:has(+ div > div > ul) > div,
+	/* Navigation bar */
+	div:has(+ div > div > ul) {
+		width: calc(226px * 6 + 16px * 5) !important;
+	}
+	div:has(+ div > div > ul) { margin-left: 0; margin-right: 0 }
+}
+
+div[data-gtm-recommend-zone],
+.crx_body.user section + div,
+.crx_body.user div:has(a[data-ga4-label="thumbnail_link"]) {
+	ul { gap: 16px; margin: -8px 0 0 0 }
+	li div:has(a[data-ga4-label="thumbnail_link"]) {
+		width: 226px !important;
+	}
+	li:has(div[width] > a[data-ga4-label="thumbnail_link"]){
+		width: 226px !important;
+		margin: 0 !important;
+	}
+	div:has(> div[width]) {
+		border-radius: 0 !important;
+	}
+	div[width] {
+		height: 226px !important;
+	}
+	a[data-ga4-label]:visited {color: #83c;}
+	a.gtm-illust-recommend-user-name:visited { color: #a46; }
+	a[data-ga4-label="thumbnail_link"] {
+		border: solid 2px; width: 216px; height: 216px; padding: 3px;
+		div[radius] {
+			border-radius: 0 !important;
+			img {
+				border-radius: 0 !important;
+			}
+		}
+	}
+	a[data-ga4-label="thumbnail_link"]:hover { color: #000 }
+	a[data-ga4-label="thumbnail_link"]:visited {color: #83c;}
+	div[width] > .gtm-illust-recommend-zone[data-ga4-label="thumbnail_link"] { border: solid 1px }
+}
+
+
+div[data-gtm-recommend-zone] {
+	> div > div { width: calc(226px * 6 + 16px * 5); }
+}
+
 body {
 	&:not(.crx_body) { --path: '?' }
 	&.art.slideshow { --path: 'art/slideshow' }

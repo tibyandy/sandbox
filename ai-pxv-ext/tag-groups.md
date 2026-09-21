@@ -1,3 +1,6 @@
+𖨆 - human made
+
+
 # unclassified
 - "body-position" > OTHER, exhibitionism...
 - IGNORE - no need to tag or classify
