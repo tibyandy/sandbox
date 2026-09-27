@@ -15,22 +15,10 @@
 
   <div id="app" class="app hidden">
 
-    <aside class="sidebar">
-      <div class="filter-block">
-        <h3 class="filter-title">Tags</h3>
-        <ul id="tag-list" class="filter-list"></ul>
-      </div>
+    <header class="app-header">
+      <div class="banner">Pxtra!</div>
 
-      <div class="filter-block">
-        <h3 class="filter-title">Artistas</h3>
-        <ul id="artist-list" class="filter-list"></ul>
-      </div>
-    </aside>
-
-    <main class="content">
       <div class="topbar">
-        <div id="result-count" class="result-count"></div>
-
         <select id="restrict-filter" class="restrict-select">
           <option value="all">☰</option>
           <option value="sfw">●</option>
@@ -39,6 +27,10 @@
           <option value="r18g">G</option>
         </select>
 
+        <button id="clear-search" class="icon-btn" type="button" title="Limpar busca" aria-label="Limpar busca">
+          🗑️
+        </button>
+
         <form id="search-form" class="search-form" autocomplete="off">
           <input
             type="text"
@@ -46,6 +38,9 @@
             class="search-input"
             placeholder="tag1 tag2 u/artista/"
           />
+          <button id="search-submit" class="icon-btn" type="submit" title="Buscar" aria-label="Buscar">
+            🔍
+          </button>
           <div id="autocomplete-dropdown" class="autocomplete-dropdown hidden">
             <div id="ac-artists-section" class="ac-section"></div>
             <div id="ac-tags-section" class="ac-section"></div>
@@ -53,15 +48,32 @@
         </form>
 
         <div class="topbar-right">
-          <nav id="pagination" class="pagination"></nav>
+          <div id="result-count" class="result-count"></div>
           <button id="theme-toggle" class="theme-toggle" title="Alternar tema claro/escuro" aria-label="Alternar tema">
             <span id="theme-icon">&#9789;</span>
           </button>
         </div>
       </div>
+    </header>
 
-      <div id="grid" class="grid"></div>
-    </main>
+    <div class="app-body">
+      <aside class="sidebar">
+        <div class="filter-block">
+          <h3 class="filter-title">Tags</h3>
+          <ul id="tag-list" class="filter-list"></ul>
+        </div>
+
+        <div class="filter-block">
+          <h3 class="filter-title">Artistas</h3>
+          <ul id="artist-list" class="filter-list"></ul>
+        </div>
+      </aside>
+
+      <main class="content">
+        <div id="grid" class="grid"></div>
+        <nav id="pagination" class="pagination"></nav>
+      </main>
+    </div>
 
   </div>
 

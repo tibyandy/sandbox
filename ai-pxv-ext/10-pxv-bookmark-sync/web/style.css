@@ -96,7 +96,35 @@ body {
 /* ---------- Layout geral ---------- */
 .app {
   display: flex;
-  min-height: 100vh;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.app-header {
+  display: flex;
+  align-items: stretch;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.banner {
+  width: 300px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--border);
+  color: var(--accent);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.app-body {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .sidebar {
@@ -105,24 +133,25 @@ body {
   padding: 16px;
   border-right: 1px solid var(--border);
   background: var(--sidebar-bg);
-  height: 100vh;
+  height: 100%;
   overflow-y: auto;
-  position: sticky;
-  top: 0;
 }
 
 .content {
   flex: 1;
   padding: 16px 24px;
   min-width: 0;
+  height: 100%;
+  overflow-y: auto;
 }
 
-/* ---------- Barra superior (contador / filtro / busca / paginação / tema) ---------- */
+/* ---------- Barra superior (filtro / busca / contador / tema) ---------- */
 .topbar {
+  flex: 1;
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 10px;
+  padding: 12px 24px;
 }
 
 .result-count {
@@ -148,14 +177,38 @@ body {
   border-color: var(--accent);
 }
 
+.icon-btn {
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  color: var(--text);
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.icon-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent);
+}
+
 .search-form {
   flex: 1 1 auto;
   min-width: 0;
   position: relative;
+  display: flex;
+  gap: 8px;
 }
 
 .search-input {
-  width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
   padding: 10px 14px;
   border-radius: 6px;
   border: 1px solid var(--border);
@@ -174,7 +227,7 @@ body {
   position: absolute;
   top: 100%;
   left: 0;
-  right: 0;
+  right: 46px; /* deixa o botão de busca de fora da largura do dropdown */
   margin-top: 4px;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
@@ -403,7 +456,8 @@ body {
   display: flex;
   gap: 4px;
   align-items: center;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
+  margin-top: 16px;
 }
 
 .page-btn {

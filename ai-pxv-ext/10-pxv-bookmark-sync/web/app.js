@@ -590,7 +590,7 @@ function renderUI() {
 
   document.getElementById('search-input').value = serializeQueryText();
   document.getElementById('restrict-filter').value = state.restrict;
-  document.getElementById('result-count').textContent = `${filtered.length} works encontrados`;
+  document.getElementById('result-count').textContent = `${filtered.length} resultados encontrados`;
 
   renderSidebar(filtered);
 
@@ -1092,6 +1092,16 @@ function initEventListeners() {
     state.page = 1;
     hideAutocomplete();
     commitStateChange();
+  });
+
+  document.getElementById('clear-search').addEventListener('click', () => {
+    document.getElementById('search-input').value = '';
+    state.tags = [];
+    state.artistId = null;
+    state.page = 1;
+    hideAutocomplete();
+    commitStateChange();
+    document.getElementById('search-input').focus();
   });
 
   document.getElementById('search-input').addEventListener('input', onSearchInputChanged);
