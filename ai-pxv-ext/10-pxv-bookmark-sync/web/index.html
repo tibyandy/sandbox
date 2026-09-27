@@ -32,11 +32,11 @@
         <div id="result-count" class="result-count"></div>
 
         <select id="restrict-filter" class="restrict-select">
-          <option value="all">☰</option>
-          <option value="sfw">●</option>
-          <option value="nsfw">18, G</option>
-          <option value="r18">18</option>
-          <option value="r18g">G</option>
+          <option value="all">All</option>
+          <option value="sfw">SFW</option>
+          <option value="nsfw">NSFW</option>
+          <option value="r18">R-18</option>
+          <option value="r18g">R-18G</option>
         </select>
 
         <form id="search-form" class="search-form" autocomplete="off">
@@ -70,6 +70,11 @@
 
       <div class="modal-body">
         <div class="modal-col">
+          <div class="filter-block">
+            <h4 class="filter-title">Artista</h4>
+            <ul id="modal-artist" class="filter-list"></ul>
+          </div>
+
           <div class="filter-block">
             <h4 class="filter-title">Tags</h4>
             <ul id="modal-tags" class="filter-list"></ul>

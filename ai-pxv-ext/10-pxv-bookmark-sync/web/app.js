@@ -5,7 +5,11 @@
  * ========================================================================== */
 
 const DATA_SCRIPT_SRC = '../data/preprocess/20260924.js';
+const TAGS_SCRIPT_SRC = '../data/tags.js';
 const THUMBS_BASE = '../data/thumbs';
+
+const PIXIV_ARTWORK_URL = (workId) => `https://www.pixiv.net/en/artworks/${workId}`;
+const PIXIV_USER_URL = (userId) => `https://www.pixiv.net/en/users/${userId}`;
 
 const PAGE_SIZE = 18; // 6 colunas x 3 linhas
 const TOP_TAGS_COUNT = 20; // X
@@ -40,7 +44,9 @@ const state = {
 
 // Índices derivados, montados após o carregamento dos dados (ver buildIndices()).
 let DATA = null;
-let tagNameToIndex = null; // Map tagName -> index no tagDict
+let TAG_TRANSLATIONS = {}; // original -> tradução (data/tags.js, opcional)
+let tagNameToIndex = null; // Map tagName original -> index no tagDict (exato)
+let tagLookupCI = null; // Map lowercase(original OU tradução) -> index no tagDict
 let artistNameToId = null; // Map userName -> userId
 let allWorksSorted = null; // array de works, ordenado desc por id (cache)
 
@@ -67,11 +73,35 @@ function loadDataScript() {
   });
 }
 
-function buildIndices(data) {
+// Traduções de tags são OPCIONAIS: se o arquivo não existir ou falhar, a app
+// segue normalmente exibindo só os nomes originais das tags.
+function loadTagTranslations() {
+  return new Promise((resolve) => {
+    const script = document.createElement('script');
+    script.src = TAGS_SCRIPT_SRC;
+    script.onload = () => {
+      resolve(typeof window.tagTranslations === 'object' && window.tagTranslations ? window.tagTranslations : {});
+    };
+    script.onerror = () => {
+      console.warn(`Não foi possível carregar ${TAGS_SCRIPT_SRC} — seguindo sem traduções de tags.`);
+      resolve({});
+    };
+    document.head.appendChild(script);
+  });
+}
+
+function buildIndices(data, translations) {
   DATA = data;
+  TAG_TRANSLATIONS = translations || {};
 
   tagNameToIndex = new Map();
-  data.tagDict.forEach((tag, idx) => tagNameToIndex.set(tag, idx));
+  tagLookupCI = new Map();
+  data.tagDict.forEach((tag, idx) => {
+    tagNameToIndex.set(tag, idx);
+    tagLookupCI.set(tag.toLowerCase(), idx);
+    const translation = TAG_TRANSLATIONS[tag];
+    if (translation) tagLookupCI.set(translation.toLowerCase(), idx);
+  });
 
   // userName -> userId. Em caso raro de nomes duplicados entre artistas
   // diferentes, fica o que tiver mais works (heurística simples).
@@ -89,6 +119,17 @@ function buildIndices(data) {
   }
 
   allWorksSorted = Object.values(data.worksById).sort((a, b) => Number(b.id) - Number(a.id));
+}
+
+// Nome de exibição de uma tag: tradução se existir, senão o original.
+function tagDisplayName(tagIdx) {
+  const original = DATA.tagDict[tagIdx];
+  return TAG_TRANSLATIONS[original] || original;
+}
+
+// Nome original de uma tag (sempre o valor cru do tagDict).
+function tagOriginalName(tagIdx) {
+  return DATA.tagDict[tagIdx];
 }
 
 /* ==========================================================================
@@ -123,7 +164,9 @@ function parseQueryText(text) {
   const tags = [];
   const tokens = remainingText.trim().split(/\s+/).filter(Boolean);
   for (const token of tokens) {
-    const idx = tagNameToIndex.has(token) ? tagNameToIndex.get(token) : INVALID_TAG_INDEX;
+    // Case-insensitive, aceita tanto o nome original da tag quanto a tradução.
+    const tokenLower = token.toLowerCase();
+    const idx = tagLookupCI.has(tokenLower) ? tagLookupCI.get(tokenLower) : INVALID_TAG_INDEX;
     if (!tags.includes(idx)) tags.push(idx);
   }
 
@@ -308,7 +351,7 @@ function el(tag, props = {}, children = []) {
 }
 
 // Cria um <li> de filtro (usado na sidebar E no modal).
-function renderFilterItem({ label, count, isActive, onNameClick, onToggleClick }) {
+function renderFilterItem({ label, subtitle, count, isActive, onNameClick, onToggleClick }) {
   const btn = el('button', {
     className: 'filter-toggle-btn ' + (isActive ? 'remove' : 'add'),
     text: isActive ? '\u2212' : '+',
@@ -319,12 +362,20 @@ function renderFilterItem({ label, count, isActive, onNameClick, onToggleClick }
     },
   });
 
-  const name = el('span', {
-    className: 'filter-name',
-    text: label,
-    title: label,
-    onClick: onNameClick,
-  });
+  const nameChildren = [el('span', { className: 'filter-name-primary', text: label })];
+  if (subtitle) {
+    nameChildren.push(el('span', { className: 'filter-name-secondary', text: subtitle }));
+  }
+
+  const name = el(
+    'span',
+    {
+      className: 'filter-name',
+      title: subtitle ? `${label} (${subtitle})` : label,
+      onClick: onNameClick,
+    },
+    nameChildren
+  );
 
   const countEl = el('span', { className: 'filter-count', text: String(count) });
 
@@ -338,8 +389,11 @@ function renderSidebar(filteredWorks) {
   tagListEl.innerHTML = '';
   for (const [tagIdx, count] of topTags) {
     const isActive = state.tags.includes(tagIdx);
+    const original = tagOriginalName(tagIdx);
+    const translation = TAG_TRANSLATIONS[original];
     const item = renderFilterItem({
-      label: DATA.tagDict[tagIdx],
+      label: translation || original,
+      subtitle: translation ? original : null,
       count,
       isActive,
       onNameClick: () => replaceQueryWithTag(tagIdx),
@@ -515,14 +569,40 @@ function openModal(work) {
   document.getElementById('modal-img').alt = work.title || work.id;
   document.getElementById('modal-title').textContent = work.title || `Work ${work.id}`;
 
+  // Artista: coluna esquerda, acima das tags.
+  const artistListEl = document.getElementById('modal-artist');
+  artistListEl.innerHTML = '';
+  const artistInfo = DATA.artistIndex[work.userId];
+  const isArtistActive = state.artistId === work.userId;
+  artistListEl.appendChild(
+    renderFilterItem({
+      label: artistInfo ? artistInfo.userName : work.userName,
+      count: artistInfo ? artistInfo.workIds.length : 0,
+      isActive: isArtistActive,
+      onNameClick: () => {
+        closeModal();
+        replaceQueryWithArtist(work.userId);
+      },
+      onToggleClick: () => {
+        closeModal();
+        isArtistActive ? clearArtist() : setArtist(work.userId);
+      },
+    })
+  );
+
+  // Tags: coluna esquerda, abaixo do artista. Mostra tradução em evidência
+  // (com o nome original como subtítulo) quando existir.
   const tagsListEl = document.getElementById('modal-tags');
   tagsListEl.innerHTML = '';
   for (const tagIdx of work.tags) {
     const isTagActive = state.tags.includes(tagIdx);
     const count = countArtistTagIntersection(work.userId, tagIdx);
+    const original = tagOriginalName(tagIdx);
+    const translation = TAG_TRANSLATIONS[original];
     tagsListEl.appendChild(
       renderFilterItem({
-        label: DATA.tagDict[tagIdx],
+        label: translation || original,
+        subtitle: translation ? original : null,
         count,
         isActive: isTagActive,
         onNameClick: () => {
@@ -551,11 +631,12 @@ function modalDetailBlock(title, contentEl) {
   ]);
 }
 
-function metaRow(label, valueText) {
-  return el('li', { className: 'meta-item' }, [
-    el('span', { className: 'meta-label', text: label }),
-    el('span', { className: 'meta-value', text: valueText }),
-  ]);
+// content pode ser uma string simples (vira <span class="meta-value">) ou um
+// elemento já pronto (ex: um <a> de link, também com classe meta-value).
+function metaRow(label, content) {
+  const valueEl =
+    typeof content === 'string' ? el('span', { className: 'meta-value', text: content }) : content;
+  return el('li', { className: 'meta-item' }, [el('span', { className: 'meta-label', text: label }), valueEl]);
 }
 
 function labeledValue(value, labelsMap) {
@@ -563,33 +644,26 @@ function labeledValue(value, labelsMap) {
   return `${value} — ${description}`;
 }
 
-// Monta a coluna de detalhes do modal: bloco "Artista" no topo, e um bloco
-// "Detalhes" logo abaixo com PageCount, AiType, IllustType, XRestrict e
-// (se aplicável) Sanity, como sublista de label/valor.
+function metaLink(text, url) {
+  return el('a', {
+    className: 'meta-value meta-link',
+    href: url,
+    target: '_blank',
+    rel: 'noopener noreferrer',
+    text: text,
+  });
+}
+
+// Monta o bloco "Detalhes" do modal: PageCount, AiType, IllustType, XRestrict,
+// Sanity (se aplicável) e, ao final, links de referência pro Pixiv (Work ID,
+// Artist ID). O bloco "Artista" agora fica na coluna esquerda (ver openModal).
 function renderModalDetails(work) {
   const detailsEl = document.getElementById('modal-details');
   detailsEl.innerHTML = '';
 
-  const artistInfo = DATA.artistIndex[work.userId];
-  const isArtistActive = state.artistId === work.userId;
-  const artistList = el('ul', { className: 'filter-list' }, [
-    renderFilterItem({
-      label: artistInfo ? artistInfo.userName : work.userName,
-      count: artistInfo ? artistInfo.workIds.length : 0,
-      isActive: isArtistActive,
-      onNameClick: () => {
-        closeModal();
-        replaceQueryWithArtist(work.userId);
-      },
-      onToggleClick: () => {
-        closeModal();
-        isArtistActive ? clearArtist() : setArtist(work.userId);
-      },
-    }),
-  ]);
-  detailsEl.appendChild(modalDetailBlock('Artista', artistList));
-
   const metaList = el('ul', { className: 'meta-list' }, [
+    metaRow('Work ID', metaLink(work.id, PIXIV_ARTWORK_URL(work.id))),
+    metaRow('Artist ID', metaLink(work.userId, PIXIV_USER_URL(work.userId))),
     metaRow('PageCount', String(work.pageCount)),
     metaRow('AiType', labeledValue(work.aiType, AI_TYPE_LABELS)),
     metaRow('IllustType', labeledValue(work.illustType, ILLUST_TYPE_LABELS)),
@@ -706,8 +780,10 @@ async function main() {
   initTheme();
 
   try {
-    const data = await loadDataScript();
-    buildIndices(data);
+    // Traduções de tags são opcionais (loadTagTranslations nunca rejeita),
+    // então Promise.all só falha de verdade se o data principal falhar.
+    const [data, translations] = await Promise.all([loadDataScript(), loadTagTranslations()]);
+    buildIndices(data, translations);
   } catch (err) {
     document.getElementById('loading-overlay').innerHTML =
       '<p style="color:#ef4444;max-width:480px;text-align:center;padding:0 20px;">' +

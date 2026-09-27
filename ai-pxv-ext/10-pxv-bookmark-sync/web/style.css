@@ -210,21 +210,36 @@ body {
   background: var(--bg-hover);
 }
 
-.filter-item.active .filter-name {
+.filter-item.active .filter-name-primary {
   color: var(--accent);
   font-weight: 600;
 }
 
 .filter-name {
   flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+}
+
+.filter-name-primary,
+.filter-name-secondary {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  cursor: pointer;
+}
+
+.filter-name-primary {
   color: var(--text);
 }
 
-.filter-name:hover {
+.filter-name-secondary {
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.filter-name:hover .filter-name-primary {
   text-decoration: underline;
 }
 
@@ -294,7 +309,7 @@ body {
   height: 100%;
   object-fit: cover;
   display: block;
-  -filter: invert(1) brightness(1.5) hue-rotate(180deg) invert(1) brightness(1.5) invert(1)
+  filter: invert(1) brightness(1.5) hue-rotate(180deg) invert(1) brightness(1.5) invert(1)
     contrast(0.5) sepia(0.2) hue-rotate(-15deg) saturate(0.5) blur(22px);
   transition: filter 0.15s ease;
 }
@@ -448,6 +463,16 @@ body {
 
 .meta-value {
   color: var(--text);
+}
+
+.meta-link {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.meta-link:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
 }
 
 .modal-close {
