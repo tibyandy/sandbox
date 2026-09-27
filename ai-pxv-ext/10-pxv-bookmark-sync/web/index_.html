@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pixiv Bookmark Browser</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div id="loading-overlay" class="loading-overlay">
+    <div class="spinner"></div>
+    <p>Carregando dados...</p>
+  </div>
+
+  <div id="app" class="app hidden">
+
+    <aside class="sidebar">
+      <div class="filter-block">
+        <h3 class="filter-title">Tags</h3>
+        <ul id="tag-list" class="filter-list"></ul>
+      </div>
+
+      <div class="filter-block">
+        <h3 class="filter-title">Artistas</h3>
+        <ul id="artist-list" class="filter-list"></ul>
+      </div>
+    </aside>
+
+    <main class="content">
+      <div class="topbar">
+        <div id="result-count" class="result-count"></div>
+
+        <form id="search-form" class="search-form" autocomplete="off">
+          <input
+            type="text"
+            id="search-input"
+            class="search-input"
+            placeholder="tag1 tag2 u/artista/"
+          />
+        </form>
+
+        <div class="topbar-right">
+          <nav id="pagination" class="pagination"></nav>
+          <button id="theme-toggle" class="theme-toggle" title="Alternar tema claro/escuro" aria-label="Alternar tema">
+            <span id="theme-icon">&#9789;</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="grid" class="grid"></div>
+    </main>
+
+  </div>
+
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div id="modal" class="modal">
+      <button id="modal-close" class="modal-close" title="Fechar" aria-label="Fechar">&times;</button>
+
+      <img id="modal-img" class="modal-img" alt="" />
+      <h3 id="modal-title" class="modal-title"></h3>
+
+      <div class="modal-body">
+        <div class="modal-col">
+          <div class="filter-block">
+            <h4 class="filter-title">Artista</h4>
+            <ul id="modal-artist" class="filter-list"></ul>
+          </div>
+
+          <div class="filter-block">
+            <h4 class="filter-title">Tags</h4>
+            <ul id="modal-tags" class="filter-list"></ul>
+          </div>
+        </div>
+
+        <div class="modal-col">
+          <div class="filter-block">
+            <h4 class="filter-title">Detalhes</h4>
+            <ul id="modal-meta" class="meta-list"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
