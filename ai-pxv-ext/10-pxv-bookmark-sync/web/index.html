@@ -32,11 +32,11 @@
         <div id="result-count" class="result-count"></div>
 
         <select id="restrict-filter" class="restrict-select">
-          <option value="all">All</option>
-          <option value="sfw">SFW</option>
-          <option value="nsfw">NSFW</option>
-          <option value="r18">R-18</option>
-          <option value="r18g">R-18G</option>
+          <option value="all">☰</option>
+          <option value="sfw">●</option>
+          <option value="nsfw">18, G</option>
+          <option value="r18">18</option>
+          <option value="r18g">G</option>
         </select>
 
         <form id="search-form" class="search-form" autocomplete="off">
@@ -46,6 +46,10 @@
             class="search-input"
             placeholder="tag1 tag2 u/artista/"
           />
+          <div id="autocomplete-dropdown" class="autocomplete-dropdown hidden">
+            <div id="ac-artists-section" class="ac-section"></div>
+            <div id="ac-tags-section" class="ac-section"></div>
+          </div>
         </form>
 
         <div class="topbar-right">

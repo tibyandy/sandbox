@@ -16,6 +16,10 @@ const TOP_TAGS_COUNT = 20; // X
 const TOP_ARTISTS_COUNT = 15; // Z
 const PAGINATION_WINDOW = 9; // números de página visíveis
 
+const AC_TOP_ARTISTS = 5; // autocomplete combinado (sem u/): top N artistas
+const AC_TOP_TAGS = 50; // autocomplete combinado: top N tags
+const AC_ARTIST_MODE_CAP = 30; // autocomplete em modo "u/..." explícito: só artistas
+
 const THEME_STORAGE_KEY = 'pxv-bookmark-theme';
 const INVALID_TAG_INDEX = -1; // marcador de tag inexistente (garante 0 resultados)
 const INVALID_ARTIST_ID = '__invalid__'; // marcador de artista inexistente
@@ -49,6 +53,10 @@ let tagNameToIndex = null; // Map tagName original -> index no tagDict (exato)
 let tagLookupCI = null; // Map lowercase(original OU tradução) -> index no tagDict
 let artistNameToId = null; // Map userName -> userId
 let allWorksSorted = null; // array de works, ordenado desc por id (cache)
+
+// Estado do dropdown de autocomplete (não faz parte do state de busca "oficial").
+let currentSuggestionsFlat = []; // [{type, tagIdx|userId, isActive, el}], ordem de exibição
+let highlightedIndex = -1; // índice em currentSuggestionsFlat destacado via teclado
 
 /* ==========================================================================
  * Carregamento dos dados (script tag dinâmica, com overlay de loading)
@@ -185,18 +193,74 @@ function serializeQueryText() {
 }
 
 /* ==========================================================================
- * URL (query params) <-> estado
+ * Autocomplete: matching / ranking
  * ========================================================================== */
 
-function stateToURL() {
-  const params = new URLSearchParams();
-  const q = serializeQueryText();
-  if (q) params.set('q', q);
-  if (state.page > 1) params.set('page', String(state.page));
-  const qs = params.toString();
-  const newUrl = window.location.pathname + (qs ? '?' + qs : '');
-  history.replaceState(null, '', newUrl);
+// Classifica o tipo de match de `s` (candidato, já em minúsculas) contra
+// `q` (palavra buscada, já em minúsculas). Cada candidato cai em EXATAMENTE
+// um nível (o de maior prioridade que ele satisfizer):
+//   0 = exato | 1 = começa com | 2 = termina com | 3 = contém no meio
+//   -1 = não bate
+function matchTier(s, q) {
+  if (s === q) return 0;
+  if (s.startsWith(q)) return 1;
+  if (s.endsWith(q)) return 2;
+  if (s.includes(q)) return 3;
+  return -1;
 }
+
+// Calcula as sugestões de autocomplete para o token parcial `rawToken`
+// (a última "palavra" sendo digitada no campo de busca).
+// Retorna null se não houver nada a mostrar.
+function computeAutocomplete(rawToken) {
+  const isArtistMode = rawToken.toLowerCase().startsWith('u/');
+  const query = (isArtistMode ? rawToken.slice(2) : rawToken).toLowerCase();
+  if (!query) return null;
+
+  // --- Artistas ---
+  const artistMatches = [];
+  for (const [userId, info] of Object.entries(DATA.artistIndex)) {
+    const tier = matchTier(info.userName.toLowerCase(), query);
+    if (tier === -1) continue;
+    artistMatches.push({ userId, info, tier, popularity: info.workIds.length });
+  }
+  artistMatches.sort((a, b) => a.tier - b.tier || b.popularity - a.popularity);
+  const artistCap = isArtistMode ? AC_ARTIST_MODE_CAP : AC_TOP_ARTISTS;
+  const artists = artistMatches.slice(0, artistCap);
+
+  if (isArtistMode) {
+    return artists.length > 0 ? { mode: 'artist', artists, tags: [] } : null;
+  }
+
+  // --- Tags (considera tradução E original; tradução tem prioridade em
+  // caso de empate no mesmo nível de match) ---
+  const tagMatches = [];
+  DATA.tagDict.forEach((original, idx) => {
+    const translation = TAG_TRANSLATIONS[original];
+    const oTier = matchTier(original.toLowerCase(), query);
+    let best = null;
+    if (translation) {
+      const tTier = matchTier(translation.toLowerCase(), query);
+      if (tTier !== -1) best = { tier: tTier, source: 0 }; // source 0 = tradução
+    }
+    if (oTier !== -1 && (!best || oTier < best.tier)) {
+      best = { tier: oTier, source: 1 }; // source 1 = original
+    }
+    if (!best) return;
+    const sortKey = best.tier * 2 + best.source; // 0..7, na ordem de prioridade pedida
+    const popularity = DATA.tagIndex[idx] ? DATA.tagIndex[idx].length : 0;
+    tagMatches.push({ tagIdx: idx, sortKey, popularity });
+  });
+  tagMatches.sort((a, b) => a.sortKey - b.sortKey || b.popularity - a.popularity);
+  const tags = tagMatches.slice(0, AC_TOP_TAGS);
+
+  if (artists.length === 0 && tags.length === 0) return null;
+  return { mode: 'combined', artists, tags };
+}
+
+/* ==========================================================================
+ * URL (query params) <-> estado
+ * ========================================================================== */
 
 function stateFromURL() {
   const params = new URLSearchParams(window.location.search);
@@ -333,6 +397,15 @@ function goToPage(page) {
 
 function el(tag, props = {}, children = []) {
   const node = document.createElement(tag);
+  // Todo <button> nasce type="button" por padrão, a menos que props.type diga
+  // o contrário. Sem isso, um <button> dentro de uma <form> (como os botões
+  // +/- do dropdown de autocomplete, que ficam dentro do <form> de busca)
+  // vira type="submit" implicitamente, disparando um submit nativo do
+  // formulário por baixo dos panos a cada clique — foi exatamente esse bug
+  // que causava resultado errático ao clicar +/- no autocomplete.
+  if (tag === 'button' && props.type === undefined) {
+    node.type = 'button';
+  }
   for (const [key, value] of Object.entries(props)) {
     if (value === null || value === undefined) continue; // nunca seta atributo com null/undefined
     if (key === 'className') node.className = value;
@@ -739,6 +812,273 @@ function initTheme() {
 }
 
 /* ==========================================================================
+ * Autocomplete: UI (render, seleção, teclado)
+ * ========================================================================== */
+
+function hideAutocomplete() {
+  document.getElementById('autocomplete-dropdown').classList.add('hidden');
+  highlightedIndex = -1;
+  currentSuggestionsFlat = [];
+}
+
+function showAutocomplete() {
+  document.getElementById('autocomplete-dropdown').classList.remove('hidden');
+}
+
+function isAutocompleteOpen() {
+  return !document.getElementById('autocomplete-dropdown').classList.contains('hidden');
+}
+
+// Cria um <li> de sugestão, reaproveitando o mesmo visual de renderFilterItem,
+// mas ligado às ações específicas do autocomplete (não às da sidebar).
+function buildSuggestionItem(entry) {
+  const li = renderFilterItem({
+    label: entry.label,
+    subtitle: entry.subtitle,
+    count: entry.count,
+    isActive: entry.isActive,
+    onNameClick: () => {
+      if (entry.type === 'tag') autocompleteSelectTagName(entry.tagIdx);
+      else autocompleteSelectArtistName(entry.userId);
+    },
+    onToggleClick: () => {
+      if (entry.type === 'tag') autocompleteToggleTag(entry.tagIdx, entry.isActive);
+      else autocompleteToggleArtist(entry.userId, entry.isActive);
+    },
+  });
+  return li;
+}
+
+function renderAutocomplete(result) {
+  const artistsSection = document.getElementById('ac-artists-section');
+  const tagsSection = document.getElementById('ac-tags-section');
+  artistsSection.innerHTML = '';
+  tagsSection.innerHTML = '';
+  currentSuggestionsFlat = [];
+  highlightedIndex = -1;
+
+  if (result.artists.length > 0) {
+    artistsSection.appendChild(el('div', { className: 'ac-section-title', text: 'Artistas' }));
+    const list = el('ul', { className: 'filter-list' });
+    for (const a of result.artists) {
+      const isActive = state.artistId === a.userId;
+      const entry = {
+        type: 'artist',
+        userId: a.userId,
+        label: a.info.userName,
+        count: a.info.workIds.length,
+        isActive,
+      };
+      const li = buildSuggestionItem(entry);
+      currentSuggestionsFlat.push({ ...entry, el: li });
+      list.appendChild(li);
+    }
+    artistsSection.appendChild(list);
+  }
+
+  if (result.tags.length > 0) {
+    tagsSection.appendChild(el('div', { className: 'ac-section-title', text: 'Tags' }));
+    const list = el('ul', { className: 'filter-list' });
+    for (const t of result.tags) {
+      const original = tagOriginalName(t.tagIdx);
+      const translation = TAG_TRANSLATIONS[original];
+      const isActive = state.tags.includes(t.tagIdx);
+      const entry = {
+        type: 'tag',
+        tagIdx: t.tagIdx,
+        label: translation || original,
+        subtitle: translation ? original : null,
+        count: DATA.tagIndex[t.tagIdx] ? DATA.tagIndex[t.tagIdx].length : 0,
+        isActive,
+      };
+      const li = buildSuggestionItem(entry);
+      currentSuggestionsFlat.push({ ...entry, el: li });
+      list.appendChild(li);
+    }
+    tagsSection.appendChild(list);
+  }
+}
+
+function moveHighlight(delta) {
+  if (currentSuggestionsFlat.length === 0) return;
+  if (highlightedIndex >= 0) currentSuggestionsFlat[highlightedIndex].el.classList.remove('highlighted');
+  highlightedIndex = Math.min(Math.max(highlightedIndex + delta, 0), currentSuggestionsFlat.length - 1);
+  const entry = currentSuggestionsFlat[highlightedIndex];
+  entry.el.classList.add('highlighted');
+  entry.el.scrollIntoView({ block: 'nearest' });
+}
+
+// Substitui só o ÚLTIMO token (parcial, sendo digitado) do campo de busca
+// pelo texto completo escolhido, preservando o texto cru dos tokens
+// anteriores exatamente como foram digitados. NÃO mexe no state/resultado.
+function completeCurrentToken(replacementText) {
+  const input = document.getElementById('search-input');
+  const tokens = input.value.split(/\s+/);
+  let lastIdx = tokens.length - 1;
+  while (lastIdx >= 0 && tokens[lastIdx] === '') lastIdx--;
+
+  let newTokens;
+  if (lastIdx < 0) {
+    newTokens = [replacementText];
+  } else {
+    newTokens = tokens.slice(0, lastIdx);
+    newTokens.push(replacementText);
+  }
+  input.value = newTokens.join(' ') + ' ';
+  input.focus();
+  const len = input.value.length;
+  input.setSelectionRange(len, len);
+}
+
+// Aplica a busca IMEDIATAMENTE: faz parse de tudo que já estava digitado
+// antes do token parcial atual (preservando essas tags/artista), soma/remove
+// a tag ou artista da sugestão, e commit. O dropdown continua aberto.
+function commitPriorTokensPlusToggle(action) {
+  const input = document.getElementById('search-input');
+  const tokens = input.value.split(/\s+/).filter(Boolean);
+  tokens.pop(); // descarta o fragmento parcial sendo digitado
+  const parsed = parseQueryText(tokens.join(' '));
+
+  let nextTags = parsed.tags.filter((t) => t !== INVALID_TAG_INDEX);
+  let nextArtist = parsed.artistId === INVALID_ARTIST_ID ? null : parsed.artistId;
+
+  if (action.type === 'tag') {
+    if (action.isActive) nextTags = nextTags.filter((t) => t !== action.tagIdx);
+    else if (!nextTags.includes(action.tagIdx)) nextTags.push(action.tagIdx);
+  } else {
+    nextArtist = action.isActive ? null : action.userId;
+  }
+
+  state.tags = nextTags;
+  state.artistId = nextArtist;
+  state.page = 1;
+  commitStateChange(); // renderUI() já reescreve o campo de busca via serializeQueryText()
+
+  hideAutocomplete(); // esconde a lista; volta a aparecer assim que digitar de novo
+  document.getElementById('search-input').focus();
+}
+
+function autocompleteToggleTag(tagIdx, isActive) {
+  commitPriorTokensPlusToggle({ type: 'tag', tagIdx, isActive });
+}
+
+function autocompleteToggleArtist(userId, isActive) {
+  commitPriorTokensPlusToggle({ type: 'artist', userId, isActive });
+}
+
+function autocompleteSelectTagName(tagIdx) {
+  completeCurrentToken(tagOriginalName(tagIdx));
+  hideAutocomplete();
+}
+
+function autocompleteSelectArtistName(userId) {
+  completeCurrentToken('u/' + DATA.artistIndex[userId].userName + '/');
+  hideAutocomplete();
+}
+
+function triggerToggleForHighlighted() {
+  const entry = currentSuggestionsFlat[highlightedIndex];
+  if (!entry) return;
+  if (entry.type === 'tag') autocompleteToggleTag(entry.tagIdx, entry.isActive);
+  else autocompleteToggleArtist(entry.userId, entry.isActive);
+}
+
+function triggerSelectNameForHighlighted() {
+  const entry = currentSuggestionsFlat[highlightedIndex];
+  if (!entry) return;
+  if (entry.type === 'tag') autocompleteSelectTagName(entry.tagIdx);
+  else autocompleteSelectArtistName(entry.userId);
+}
+
+function onSearchInputChanged(e) {
+  const tokens = e.target.value.split(/\s+/);
+  const trailing = tokens[tokens.length - 1] || '';
+  if (!trailing) {
+    hideAutocomplete();
+    return;
+  }
+  const result = computeAutocomplete(trailing);
+  if (!result) {
+    hideAutocomplete();
+    return;
+  }
+  renderAutocomplete(result);
+  showAutocomplete();
+}
+
+function onSearchInputKeydown(e) {
+  if (e.key === 'Escape') {
+    if (isAutocompleteOpen()) {
+      e.preventDefault();
+      e.stopPropagation();
+      hideAutocomplete();
+    }
+    return;
+  }
+
+  if (!isAutocompleteOpen()) return; // deixa o comportamento normal do input/form
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    moveHighlight(1);
+    return;
+  }
+  if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    moveHighlight(-1);
+    return;
+  }
+  if (e.key === ' ' && highlightedIndex >= 0) {
+    e.preventDefault();
+    triggerToggleForHighlighted();
+    return;
+  }
+  if (e.key === 'Enter' && highlightedIndex >= 0) {
+    e.preventDefault();
+    triggerSelectNameForHighlighted();
+    return;
+  }
+  // Enter sem item destacado: deixa o submit normal do form acontecer.
+}
+
+// Fecha o dropdown ao clicar fora dele e fora do input (mas cliques DENTRO
+// do dropdown, como nos botões +/- ou no nome, não devem fechá-lo aqui —
+// isso já é decidido pelas próprias ações de cada item).
+function onDocumentClickForAutocomplete(e) {
+  if (!isAutocompleteOpen()) return;
+  const dropdown = document.getElementById('autocomplete-dropdown');
+  const input = document.getElementById('search-input');
+  if (dropdown.contains(e.target) || e.target === input) return;
+  hideAutocomplete();
+}
+
+/* ==========================================================================
+ * Atalhos de teclado para navegação de página (fora de campos de digitação)
+ * ========================================================================== */
+
+function isTypingContext() {
+  const ae = document.activeElement;
+  if (!ae) return false;
+  const tag = ae.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return true;
+  const dropdown = document.getElementById('autocomplete-dropdown');
+  if (dropdown && dropdown.contains(ae)) return true;
+  return false;
+}
+
+function onGlobalKeydownForPageNav(e) {
+  if (isTypingContext()) return;
+  const key = e.key.toLowerCase();
+  if (key === 'arrowleft' || key === 'a') {
+    e.preventDefault();
+    goToPage(Math.max(1, state.page - 1));
+  } else if (key === 'arrowright' || key === 'd') {
+    e.preventDefault();
+    goToPage(state.page + 1); // renderUI() já limita ao total de páginas
+  }
+}
+
+/* ==========================================================================
  * Inicialização
  * ========================================================================== */
 
@@ -750,8 +1090,14 @@ function initEventListeners() {
     state.tags = parsed.tags;
     state.artistId = parsed.artistId;
     state.page = 1;
+    hideAutocomplete();
     commitStateChange();
   });
+
+  document.getElementById('search-input').addEventListener('input', onSearchInputChanged);
+  document.getElementById('search-input').addEventListener('keydown', onSearchInputKeydown);
+  document.addEventListener('click', onDocumentClickForAutocomplete);
+  document.addEventListener('keydown', onGlobalKeydownForPageNav);
 
   document.getElementById('restrict-filter').addEventListener('change', (e) => {
     state.restrict = RESTRICT_FILTERS.includes(e.target.value) ? e.target.value : DEFAULT_RESTRICT;
