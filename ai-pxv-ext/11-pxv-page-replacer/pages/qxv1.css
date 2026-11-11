@@ -1,0 +1,128 @@
+body {
+	margin-top: 100vh;
+}
+#qxiv {
+	position: absolute;
+	inset: 0;
+	overflow: auto;
+	&, & *, &::after, &::before {
+		box-sizing: border-box;
+		transition: all 0.12s ease-in;
+	}
+	color: hsl(318 12% 75% / 1);
+	& a:hover {
+		color: #fff;
+		text-shadow: 1px 1px 1px hsl(318 12% 75% / 0.5);
+	}
+}
+#qx-page-data {
+	width: 100%;
+	height: 100vh;
+	display: flex;
+	flex-direction: row-reverse;
+}
+.qx-main {
+	flex: auto;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	max-height: 100vh;
+	height: 100vh;
+	padding: 5px;
+	background: hsl(343 6% 13%);
+}
+.qx-image-panel {
+	box-shadow: 0 0 0 2px  hsl(290 16% 26% / 1);;
+	border: solid 1px #000;
+	background: hsl(343 6% 18% / 1);
+	flex: auto;
+	display: flex;
+	flex-direction: row;
+	max-height: 100%;
+	padding: 3px;
+	& a { display: flex }
+}
+
+.qx-side {
+	width: 330px;
+}
+.qx-side:empty {
+	background: hsl(343 6% 13%);
+}
+.qx-side:not(:empty) {
+	width: 330px;
+	display: flex;
+	flex-direction: column;
+	background: hsl(290 16% 26% / 1);
+	gap: 5px;
+	padding: 5px;
+	& > div {
+		border: solid 1px hsl(302 79% 4% / 1);
+		background: hsl(281 14% 19% / 1);
+		padding: 5px;
+		border-radius: 4px;
+	}
+
+	& .qx-user-panel {
+		display: grid;
+		height: 52px;
+		grid: 'a b b' 'a c d' / auto 1fr;
+		border-radius: 52px 9px 9px 52px;
+		&:has(a:hover) {
+			border: solid 1px hsl(318 12% 75% / 1);
+			box-shadow: 1px 1px 0 1px hsl(318 12% 75% / 0.75);
+			& img {
+				border: solid 1px hsl(318 12% 75% / 0.75);
+			}
+		}
+		& a { display: contents }
+		& div span:first-child { display: none }
+		& .qx-name { grid-area: b; font-size: 20px; line-height: 22px; }
+		& .qx-id { grid-area: d; margin-right: 3px; }
+		& .qx-account { grid-area: c }
+		& .qx-profileImage {
+			grid-area: a;
+			margin: -6px 6px -6px -6px;
+			& img { border-radius: 100%; border: solid 1px #000; }
+		}
+	}
+}
+
+#qx-debug-panel {
+	width: 100%;
+	height: 100%;
+	overflow: auto;
+
+	& #qx-fetch, & #qx-debug {
+		& ul {
+			list-style: none;
+			padding: 0 0 0 1ch;
+
+			& li {
+				color: #0099cc;
+				&.debug { --level-color: #0099cc; }
+				&.info { --level-color: #00cc99; }
+				&.warn { --level-color: #cc9900; }
+				&.error { --level-color: #aa3399; }
+				&:before {
+					color: var(--level-color);
+					content: 'Q*';
+					font-weight: bold;
+				}
+				& span:first-child {
+					color: #ccc;
+					display: inline-block;
+					width: 7ch;
+					padding-right: 0.5ch;
+					text-align: right;
+				}
+				& span:nth-child(n + 2) {
+					color: var(--level-color);
+				}
+				& span:nth-child(2) {
+					font-weight: bold;
+				}
+			}
+		}
+	}
+}

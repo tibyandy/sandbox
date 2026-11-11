@@ -33,7 +33,7 @@ void function setupExtensor () {
 			queuedEvents: extensorQueuedEvents,
 		}
 	}
-	console.info('Extensor', 'Activating main script "${appScript}"')
+	console.info('Extensor', `Activating main script "${appScript}"`)
 	load(appScript)
 	return
 

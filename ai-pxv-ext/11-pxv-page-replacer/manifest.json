@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "Qxiv!",
+  "version": "0.0.1",
+  "description": "SheetDB with config page",
+  "host_permissions": [
+    "https://*.pixiv.net/*",
+    "https://script.google.com/*",
+    "https://script.googleusercontent.com/*"
+  ],
+  "permissions": [ "tabs" ],
+  "content_scripts": [ {
+    "matches": ["https://*.pixiv.net/*"],
+    "js": ["boot.js"],
+    "run_at": "document_start"
+  } ],
+  "commands": {
+    "open_settings": {
+      "suggested_key": { "default": "Alt+Q", "mac": "Alt+Q" },
+      "description": "Qxiv Menu"
+    }
+  },
+  "background": {
+    "service_worker": "service-worker.js"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [ "*" ],
+      "matches": ["https://*.pixiv.net/*"]
+    }
+  ]
+}

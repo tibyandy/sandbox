@@ -1,4 +1,5 @@
 void function MainModule() {
+	window.crx = window.crx || {}
 	let DB
 	let illustPageData
 	let illustPageHref
@@ -51,6 +52,11 @@ void function MainModule() {
 			return
 		})
 		if (!json) return
+
+		if (url.startsWith('/ajax/illust/')) {
+			window.crx.ajaxIllust = parseAjaxIllust(json?.body)
+			return
+		}
 
 		try {
 			extractIllustWorks(url, json)
@@ -209,4 +215,22 @@ void function MainModule() {
 	}
 
 	console.info('Ext:MainModule', 'setup complete')
+
+	function parseAjaxIllust (i) {
+		return extract(
+			'aiType bookStyle bookmarkData createDate id height illustTitle pageCount sl tags title uploadDate urls userAccount userId userIllusts userName viewCount width xRestrict',
+			i,
+			'_rest'
+		)
+	}
+
+	function extract (keys, object, restField) {
+		keys = keys.split(' ')
+		const [result, rest] = Object.entries(object).reduce(([ a, b ], [ k, v ]) => {
+			(keys.includes(k) ? a : b)[k] = v
+			return [ a, b ]
+		}, [{}, {}]);
+		if (restField) result[restField] = rest
+		return result
+	}
 }()
