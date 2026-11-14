@@ -1,6 +1,3 @@
-body {
-	margin-top: 100vh;
-}
 #qxiv {
 	position: absolute;
 	inset: 0;
@@ -16,8 +13,6 @@ body {
 	}
 }
 #qx-page-data {
-	width: 100%;
-	height: 100vh;
 	display: flex;
 	flex-direction: row-reverse;
 }
@@ -186,10 +181,6 @@ body {
 }
 
 #qx-debug-panel {
-	width: 100%;
-	height: 100%;
-	overflow: auto;
-
 	& #qx-fetch, & #qx-debug {
 		& ul {
 			list-style: none;
@@ -223,3 +214,44 @@ body {
 		}
 	}
 }
+
+body.qx-debug {
+	& #qxiv { display: block }
+	& > :not(#qxiv) { display: none }
+}
+body:not(.qx-debug) {
+	& #qxiv { display: none }
+}
+
+.qx-route-work-cover {
+	&, & *, &::after, &::before {
+		box-sizing: border-box;
+		transition: all 0.12s ease-in;
+	}
+	& .h-64:has(~ .__top_side_menu_body) { /* Navigation header */
+		& + div:has(iframe) /* ads */ { display: none }
+	}
+
+	& #qx-work-div {
+		display: flex;
+		width: calc(100vw - var(--scrollbar-width));
+		& #qx-main {
+			flex: 1;
+			background: #1f1f1f;
+		}
+		& #qx-aside {
+			width: 288px;
+		}
+		& #qx-work {
+			overflow-y: auto;
+			max-height: calc(100vh - 64px);
+		}
+	}
+}
+.qx-a { outline: dotted cyan 1px; }
+.qx-m { outline: dashed blue 2px; }
+.qx-t { outline: dotted red 1px; }
+
+.qx-a:hover { outline: solid cyan 3px; }
+.qx-m:hover { outline: solid blue 2px; }
+.qx-t:hover { outline: solid red 1px; }

@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": ". Qxiv .",
+  "short_name": "Qxiv",
+  "version": "0.2.0",
+  "description": "Better messages logs",
+  "host_permissions": [
+    "https://*.pixiv.net/*",
+    "https://script.google.com/*",
+    "https://script.googleusercontent.com/*"
+  ],
+  "permissions": [ "tabs" ],
+  "content_scripts": [ {
+    "matches": ["https://*.pixiv.net/*"],
+    "js": ["settings.js", "boot.js"],
+    "run_at": "document_start"
+  } ],
+  "background": {
+    "service_worker": "service-worker.js"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [ "*" ],
+      "matches": ["https://*.pixiv.net/*"]
+    }
+  ]
+}

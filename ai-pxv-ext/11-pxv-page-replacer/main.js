@@ -106,13 +106,31 @@ Q.main = async () => {
 		await Promise.all([
 			Q.loadJs('pages/debug-panel.js').then(() => Q.debug('main', 'debug-panel loaded').andLog()),
 			Q.loadJs('pages/router.js').then(() => Q.debug('main', 'router loaded').andLog()),
+			Q.loadJs('libs/waitfor.js').then(() => Q.debug('main', 'lib-waitfor loaded').andLog()),
 		])
 		Q.whenBodyReady(() => {
+			const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+			document.documentElement.style.setProperty('--scrollbar-width', `${scrollbarWidth}px`);
+			Q.main.setFocusBlurInterceptor()
 			Q.initialized = true
 			Q.info('main', 'started successfully').andLog()
 		})
 	} catch (e) {
 		Q.error('main', 'error starting', e).andLog()
+	}
+}
+
+Q.main.setFocusBlurInterceptor = async () => {
+	try {
+		const { body } = document
+		const toggleDebug = () => body.classList.toggle('qx-debug')
+		body.addEventListener('keydown', k => {
+			if (k.key === 'Control' && k.altKey) toggleDebug()
+			if (k.key === 'Alt' && k.ctrlKey) toggleDebug()
+		})
+		Q.debug('main.setFocusBlurInterceptor', 'started successfully').andLog()
+	} catch (e) {
+		Q.error('main.setFocusBlurInterceptor', 'error starting', e).andLog()
 	}
 }
 

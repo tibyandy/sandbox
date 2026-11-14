@@ -11,9 +11,9 @@ const purple = 'color: #aa3399;' + bold
 const formatString = () => `%cQ* %c${(performance.now() / 1000).toFixed(4)} %c[%s] %s`
 
 Object.defineProperties(console, {
-	debug: { get: () => debug.bind(console, formatString(), blue, bold, blue) },
-	info: { get: () => info.bind(console, formatString(), green, bold, green) },
-	error: { get: () => error.bind(console, formatString(), orange, bold, purple) },
+	debug: { get: () => debug.bind(console, formatString(), cDebug, bold, cDebug) },
+	info: { get: () => info.bind(console, formatString(), cInfo, bold, cInfo) },
+	error: { get: () => error.bind(console, formatString(), cError, bold, purple) },
 })
 
 console.debug('boot', 'starting')

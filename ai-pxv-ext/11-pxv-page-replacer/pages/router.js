@@ -1,10 +1,13 @@
 void function router() {
-	Q._lastHref = null
 	Q._pageData = {}
-	Q._routeFetchListener = null
+
+	Q.route = {
+		_current: {}
+	}
+	Q.router = {}
 
 	Q.routes = ([
-		['^/(?:[a-z]{2}/)?artworks/(\\d+)',                    'work-cover',          1, ['workId'] ],
+		['^/(?:[a-z]{2}/)?artworks/(\\d+)',                    'work-cover',          'workCover', ['workId'] ],
 		['^/(?:[a-z]{2}/)?artworks/(\\d+)#.+',                 'work-slideshow',      0, ['workId'] ],
 		['^/bookmark_detail\\.php',                            'workfav-detail',      0, 0 ],
 		['^/bookmark_add\\.php',                               'workfav-edit',        0, 0 ],
@@ -39,46 +42,72 @@ void function router() {
 		['^/user/(\\d+)/series/(\\d+)',                        'user-series',         0, ['userId', 'seriesId'] ],
 		['^/(?:[a-z]{2}/)?users/(\\d+)/artworks',              'user-works',          0, ['userId'] ],
 	].map(
-		([strPath, path, hasRouteHandler, matchers]) => ({ regExp: new RegExp(strPath), path, hasRouteHandler, matchers })
+		([strPath, path, routeHandle, params]) => ({ regExp: new RegExp(strPath), path, routeHandle, params })
 	))
 
-	Q.initRouter = async () => {
+	Q.router.init = async () => {
 		Q.debug('router', 'activating route listeners').andLog()
-		await Promise.all(Q.routes.filter(({ hasRouteHandler: h }) => !!h).map(async route => {
+		await Promise.all(Q.routes.filter(({ routeHandle: h }) => !!h).map(async route => {
 			try {
 				await Q.loadJs(`/route/${route.path}.js`)
-				Q.debug('router', `"${route.path}" route listener activated`).andLog()
+				Q.debug('router', `${route.routeHandle} "${route.path}.js" handler loaded`).andLog()
 			} catch (e) {
-				Q.error('router', `"${route.path}" route listener could not be activated`).andLog()
+				Q.error('router', `${route.routeHandle} "${route.path}.js" handler could not be loaded!!!`).andLog()
 			}
 		}))
-		new MutationObserver(Q.checkMutations).observe(
+		new MutationObserver(Q.router.checkChanges).observe(
 			document.body || document.documentElement,
 			{ childList: true, subtree: true }
 		)
 
-		Q.on('fetch-success', event => {
-			Q._routeFetchListener && Q._routeFetchListener(event)
-		});
+		Q.on('fetch-success', event => Q.router._current?.fetchListener?.(event));
 
 		setTimeout(() => {
-			Q.checkMutations({})
+			Q.router.checkChanges()
 			Q.info('router', 'started successfully').andLog()
 		})
 	}
 
-	Q.checkMutations = mutations => {
+	let qxm = 0
+
+	Q.router.checkChanges = e => {
 		const currHref = location.href
-		const locationChanged = Q._lastHref !== currHref
-		Q._lastHref = currHref
-		if (locationChanged) Q.locationChanged(new Date().toISOString(), currHref)
+		const urlChanged = Q.router.lastHref !== currHref
+		Q.router.lastHref = currHref
+		if (urlChanged) Q.router.urlChanged(new Date().toISOString(), currHref)
+			/*
+		if (e?.length) {
+			const targets = []
+			for (const { target, type } of e) {
+				if (target.closest('*[id^=qx]') || type !== 'childList') continue
+				if (!targets.includes(target)) {
+					targets.push(target)
+					target.classList?.add?.('qx-m')
+				}
+			}
+		}
+			*/
 	}
 
-	Q.locationChanged = (now, currHref) => {
-		Q.info('router', 'locationChanged', currHref).andLog()
+	Q.detectElementAdditions = node => {
+		const { _elements: e } = Q.router
+		const els = []
+		els.push([
+			document.querySelector('main section div > div > figure:has(*[role=presentation] a img)'),
+			document.querySelector('aside section:has(a[href^="/en/users/"]):has(h2)'),
+			document.querySelector('aside section:has(a[href^="/en/users/"]):has(header):has(nav)'),
+			document.querySelector('main h1'),
+			document.querySelector('main figcaption footer'),
+			[...document.querySelectorAll('main + aside > *:not(.qx-tagged')]
+		].flat().filter(x => !!x).map(x => x.classList.add('qx-tagged')))
+		els.forEach(el => { if (!e.includes(el)) { e.push(el) } })
+		Q.router._current.update?.()
+	}
+
+	Q.router.urlChanged = (now, currHref) => {
 		const currUrl = new URL(currHref)
 		const currentPath = currUrl.pathname + currUrl.search + currUrl.hash;
-		const route = findRoute(currentPath) || false
+		const route = findCurrentRoute(currentPath) || false
 		Q._pageData = {
 			meta: {
 				path: route.path || 'unknown',
@@ -87,20 +116,27 @@ void function router() {
 				ajaxUrl: null
 			}
 		}
-		if (route.matchers) {
+		if (route.params) {
 			const match = currentPath.match(route.regExp)
-			const params = Object.fromEntries(route.matchers.map((m, i) => [ m, match[i + 1] ]))
+			const params = Object.fromEntries(route.params.map((m, i) => [ m, match[i + 1] ]))
 			Object.assign(Q._pageData, { ...params })
 		}
-		if (route.hasRouteHandler) {
-			Q.send('route:' + route.path, Q._pageData)
+		if (route.routeHandle) {
+			Q.router._current = Q.route[route.routeHandle]
 		}
-		Q.send('render-route', Q._pageData)
+		Q.whenBodyReady(() => {
+			const cl = document.body.classList
+			cl.forEach(className => {
+				if (className.startsWith('qx-route')) cl.remove(className)
+			})
+			cl.add('qx-route-' + route.path)
+			Q.router._current.init?.()
+		})
 	}
 
-	function findRoute (currPath) {
+	function findCurrentRoute (currPath) {
 		return Q.routes.find(({ regExp }) => regExp.test(currPath))
 	}
 
-	Q.initRouter()
+	Q.router.init()
 }()

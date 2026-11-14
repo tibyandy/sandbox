@@ -1,12 +1,71 @@
 void function routeWorkCover () {
-	let profileImageUrl
-	Q.on('route:work-cover', routeSummary => {
-		Q._routeFetchListener = async ({ url, response }) => {
+	const ifFound = (selector, callback) => {
+		const e = document.querySelector(selector)
+		e && callback(e)
+	}
+
+	const route = Q.route.workCover = {}
+	route._initialized = false
+
+	route.init = async () => {
+		if (route._initialized) {
+			Q.debug('routeWorkCover', 'already initialized').andLog()
+			return
+		}
+		route._initialized = true
+		Q.debug('routeWorkCover', 'initializing').andLog()
+		if (!document.querySelector('#qx-work-div')) {
+			await route._addQxWorkDiv()
+		}
+		await route._assignElementsToQxWorkDiv()
+		Q.info('routeWorkCover', 'initialized').andLog()
+	}
+
+	route._addQxWorkDiv = async () => {
+		const x = await waitFor('.h-64:has(~ .__top_side_menu_body)')
+		x.after(JSML({
+			div: [
+				{ id: 'qx-work-div' },
+				{ div: [{ id: 'qx-main' },
+					{ div: [{ id: 'qx-work' }] },
+					{ div: [{ id: 'qx-preview-images' }] },
+					{ div: [{ id: 'qx-artist-works' }] },
+					{ div: [{ id: 'qx-related-works' }] },
+				]},
+				{ div: [{ id: 'qx-aside' },
+					{ div: [{ id: 'qx-aside-artist' }] },
+					{ div: [{ id: 'qx-aside-artist-works' }] },
+					{ div: [{ id: 'qx-aside-title' }] },
+					{ div: [{ id: 'qx-aside-tags' }] },
+					{ div: [{ id: 'qx-aside-description' }] },
+					{ div: [{ id: 'qx-aside-date' }] },
+					{ div: [{ id: 'qx-aside-rest' }] },
+				]},
+			]
+		}).asNode)
+	}
+
+	route._assignElementsToQxWorkDiv = () => {
+		ifFound('#qx-work:empty', qx => waitFor('main section div > div > figure:has(*[role=presentation] a img)')
+			.then(e => qx.append(e)))
+		ifFound('#qx-aside-artist:empty', qx => waitFor('aside section:has(a[href^="/en/users/"]):has(h2)')
+			.then(e => qx.append(e)))
+		ifFound('#qx-aside-artist-works:empty', qx => waitFor('aside section:has(a[href^="/en/users/"]):has(header):has(nav)')
+			.then(e => qx.append(e)))
+		ifFound('#qx-aside-title:empty', qx => waitFor('main h1')
+			.then(e => qx.append(e)))
+		ifFound('#qx-aside-tags:empty', qx => waitFor('main figcaption footer:not(.qx-tagged)')
+			.then(e => qx.append(e)))
+	}
+
+	route.fetchListener = async ({ url, response }) => {
+			let profileImageUrl
+			return
 			if (url.startsWith(`/ajax/illust/${routeSummary.workId}`)) {
-				Q.info('route/work-cover', 'ajax found!')
+				Q.info('route/work-cover', 'ajax found!').andLog()
 				let illustIndex
 				const r = (await response.json()).body
-				const userIllusts = Object.entries(r.userIllusts)
+				const userIllusts = Object.entries(r.userIllusts || {})
 				const s = {
 					illust: {
 						id: r.id,
@@ -79,9 +138,6 @@ void function routeWorkCover () {
 				})
 				routeSummary.meta.ajaxUrl = url
 				routeSummary.post.index = illustIndex
-				Q.info('render-route', JSON.stringify(routeSummary)).andLog()
-				Q.send('render-route', routeSummary)
 			}
 		}
-	})
 }()

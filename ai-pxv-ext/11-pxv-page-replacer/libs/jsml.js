@@ -17,7 +17,7 @@ const JSML = (function () {
         if (!(this instanceof JSMLInstance)) {
             return new JSMLInstance(jsObject);
         }
-        this._data = jsObject;
+        this.source = jsObject;
     }
 
     // ==========================================
@@ -67,7 +67,7 @@ const JSML = (function () {
         return result;
     }
 
-    function _jsonToHtml(jsonObj) {
+    function _asNode(jsonObj) {
         if (jsonObj === null || jsonObj === undefined) {
             return document.createTextNode('');
         } else if (typeof jsonObj === "string" || typeof jsonObj === "number") {
@@ -99,7 +99,7 @@ const JSML = (function () {
                             return;
                         }
                     }
-                    element.appendChild(_jsonToHtml(item));
+                    element.appendChild(_asNode(item));
                 });
             }
 
@@ -128,20 +128,14 @@ const JSML = (function () {
         return _htmlToJson(template.content.firstElementChild);
     };
 
-    // ==========================================
-    // GETTERS DE INSTÂNCIA (USOS 3 E 4)
-    // ==========================================
-
     Object.defineProperty(JSMLInstance.prototype, 'asNode', {
-        get: function () {
-            return _jsonToHtml(this._data);
-        },
+        get: function () { return _asNode(this.source) },
         configurable: true
     });
 
     Object.defineProperty(JSMLInstance.prototype, 'asHtml', {
         get: function () {
-            const dom = _jsonToHtml(this._data);
+            const dom = _asNode(this.source);
             if (dom.nodeType === 3) return dom.nodeValue;
             return dom.outerHTML;
         },
