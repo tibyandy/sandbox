@@ -1,5 +1,5 @@
 const bootImportTime = performance.now()
-const mainScriptFileName = SETTINGS.main_script || 'main.js'
+const plugScriptPath = SETTINGS.plug_script_path || 'lib/plug.js'
 
 const getUrl = chrome.runtime.getURL
 const manifest = chrome.runtime.getManifest()
@@ -8,7 +8,7 @@ const extFullName = (manifest.name || manifest.short_name || ('ID:' + chrome.run
 const extVer = manifest.version
 
 const logScriptName = `${new Error().stack.split('/').pop().split(':').shift()}`
-const logPrefix = SETTINGS.log_prefix || 'CRX'
+const logPrefix = SETTINGS.log_prefix || 'PlugXT'
 
 void function overrideConsole () {
 	const { debug, info, error } = console
@@ -28,19 +28,19 @@ void function overrideConsole () {
 console.debug(
 	`Chrome Extension: "${extFullName}" -- Version ${extVer}`,
 	`\n- Launched content script "${logScriptName}" into an isolated world in ${bootImportTime.toFixed(2)}ms`,
-	`\n- Importing main script "${mainScriptFileName}" into the main world`,
+	`\n- Importing PlugXT "${plugScriptPath}" into the main world`,
 	`\n- Main world URL:`, location.href
 )
 
 const debugEventListener = (target, listener) => target.addEventListener(
-	listener, () => console.debug('Event triggered:', `"${listener}"`)
+	listener, () => console.debug('Document event triggered:', `"${listener}"`)
 )
 
 debugEventListener(document, 'DOMContentLoaded')
 debugEventListener(window, 'load')
 
 const s = document.createElement('script')
-s.src = getUrl(mainScriptFileName);
+s.src = getUrl(plugScriptPath);
 s.setAttribute('data-chrome-runtime-url', getUrl(''))
 s.setAttribute('data-extension-name', extName)
 s.setAttribute('data-extension-full-name', extFullName)
@@ -58,6 +58,6 @@ s.onload = () => {
 s.onerror = () => {
 	s.remove()
 	console.error(`FATAL ERROR: unable to correctly start extension's main script`,
-		`\n- Check if "${mainScriptFileName}" path is correct and if "manifest.json" includes it on "web_accessible_resources"`)
+		`\n- Check if "${plugScriptPath}" path is correct and if "manifest.json" includes it on "web_accessible_resources"`)
 }
 (document.head || document.documentElement).prepend(s)

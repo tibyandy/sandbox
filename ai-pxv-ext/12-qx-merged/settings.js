@@ -1,6 +1,6 @@
 const SETTINGS = {
-	"main_script": "lib/extension-init.js",
-	"module_scripts": [
+	"plug_script_path": "lib/plugxt.js",
+	"extension_scripts": [
 		"src/main.js"
 	],
 	"extension_global_variable": "Q",

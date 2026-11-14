@@ -1,36 +1,91 @@
 'use strict'
 
-void function startExtensionGlobalObject() {
-	const settingsFromDataset = document.currentScript.dataset
-	console.log('settingsFromDataset', settingsFromDataset)
-	const GLOBAL_VAR = settingsFromDataset.extensionGlobalVariable || 'CRX'
+/**
+ * PlugXT - Plug Extensions
+ * Create browser extensions easily.
+ * Check /plugxt.md for more info.
+ */
+void (() => {
+	return initializePlugXT(document.currentScript.dataset)
 
-	function ProxyObject() {
-		return new Proxy({}, {
+	/* Creates PlugXT.core and PlugXT.f */
+	function initializePlugXT (scriptDatasetObject) {
+		const globalVar = scriptDatasetObject.extensionGlobalVariable || 'PlugXT'
+
+		/* Singleton instance of PlugXT */
+		const PlugXT = new function PlugExtension () {
+			const plugXTInstance = new Proxy(this, getPlugXTProxyHandler(globalVar))
+			plugXTInstance.core = buildCorePackage(plugXTInstance)
+			plugXTInstance.core.settings = buildCoreSettingsModule(plugXTInstance, scriptDatasetObject)
+			plugXTInstance.core.console = buildCoreConsoleModule(plugXTInstance)
+			plugXTInstance.core.event = buildCoreEventModule(plugXTInstance)
+			plugXTInstance.core.fetch = buildCoreFetchModule(plugXTInstance)
+			plugXTInstance.f = {
+				get currentScript () {
+					const { currentScript } = document
+					if (!currentScript) return
+					return currentScript.src.split('//')[1].split('/').slice(1).join('/')
+				}
+			}
+			return plugXTInstance
+		}
+
+		/* Sets PlugXT to a global (window) variable */
+		window[scriptDatasetObject.extensionGlobalVariable] = PlugXT
+
+		/* Initializes PlugXT core package */
+		PlugXT.core.init()
+	}
+
+	function getPlugXTProxyHandler(objName) {
+		return {
 			get(target, prop) {
 				if (typeof prop === 'symbol') return Reflect.get(target, prop)
 				if (prop in target) return target[prop]
-				throw new Error(`${GLOBAL_VAR}.${String(prop)} is not defined`)
+				throw new Error(`${objName}.${String(prop)} is not defined`)
 			},
 			set(target, prop, value) {
-				if (prop in target) throw new Error(`${GLOBAL_VAR}.${String(prop)} is already defined`)
+				if (prop in target) throw new Error(`${objName}.${String(prop)} is already defined`)
 				target[prop] = value
 				return true
 			}
+		}
+	}
+
+	/* PlugXT.core */
+	function buildCorePackage (PlugXT) {
+		const _ = {
+			error: null
+		}
+		const module = function PlugXTCoreModule () {}
+		return Object.assign(module, {
+			async init () { return init (PlugXT.core.settings) },
+			__internals: _
 		})
+
+		async function init() {
+			if (_.error === false) {
+				console.warn('core', 'already initialized successfully, skip')
+				return
+			}
+			try {
+				PlugXT.core.settings.init()
+				PlugXT.core.console.init()
+				await Promise.all([
+					PlugXT.core.event.init(),
+					PlugXT.core.fetch.init()
+				])
+				console.info('core', 'initialized')
+				_.error = false
+			} catch (e) {
+				_.error = e
+				console.error('core', 'error initializing', e)
+			}
+		}
 	}
 
-	const CRX = window[GLOBAL_VAR] = new ProxyObject()
-	queueMicrotask(() => {
-		CRX.settings.init(settingsFromDataset)
-		CRX.core.init(CRX.settings)
-	})
-
-	CRX.utils = {
-		get currentScript () { return document.currentScript.src.split('//')[1].split('/').slice(1).join('/') },
-	}
-
-	CRX.settings = (function ExtensionSettingsModuleBuilder () {
+	/* PlugXT.core.settings */
+	function buildCoreSettingsModule (_PlugXT, settings) {
 		const _ = Object.seal({
 			moduleScripts: null,
 			extensionGlobalVariable: null,
@@ -44,8 +99,8 @@ void function startExtensionGlobalObject() {
 			chromeRuntimeUrl: null,
 		})
 
-		const module = function ExtensionSettingsModule () { return _ }
-		module.init = function (settings) {
+		const module = function PlugXTSettingsModule () { return _ }
+		module.init = function () {
 			for (const key of Object.keys(_)) {
 				try {
 					_[key] = settings[key] || _[key]
@@ -67,39 +122,10 @@ void function startExtensionGlobalObject() {
 		}
 
 		return Object.seal(module)
-	})()
+	}
 
-	CRX.core = (function ExtensionCoreModuleBuilder () {
-		const _ = {
-			error: null
-		}
-		const module = function ExtensionCoreModule () {}
-		return Object.assign(module, {
-			async init (crxSettings) { return init (crxSettings) },
-			__internals: _
-		})
-
-		async function init(crxSettings) {
-			if (_.error === false) {
-				console.warn('core', 'already initialized successfully, skip')
-				return
-			}
-			try {
-				CRX.core.console.init(crxSettings)
-				await Promise.all([
-					CRX.core.event.init(),
-					CRX.core.fetch.init()
-				])
-				console.info('core', 'initialized')
-				_.error = false
-			} catch (e) {
-				_.error = e
-				console.error('core', 'error initializing', e)
-			}
-		}
-	})()
-
-	CRX.core.console = (function ExtensionCoreConsoleModuleBuilder () {
+	/* PlugXT.core.console */
+	function buildCoreConsoleModule (PlugXT) {
 		const _ = {
 			originalWindowConsole: null,
 			logPrefix: 'CRX',
@@ -115,20 +141,22 @@ void function startExtensionGlobalObject() {
 			get cError () { return `color: ${_.errorColor}; ${_.bold}` },
 			now: () => (performance.now() / 1000).toFixed(2)
 		}
-		const module = function ExtensionCoreConsoleModule () {}
+		const module = function PlugXTCoreConsoleModule () {}
 		return Object.assign(module, {
-			init (crxSettings) { return init(crxSettings) },
+			init () { return init(PlugXT.core.settings) },
 			__internals: _
 		})
 
-		function init (crxSettings) {
-			_.extensionName = crxSettings.extensionName || _.extensionName
-			_.logPrefix = crxSettings.logPrefix || _.logPrefix
-			_.logColor = crxSettings.logColor || _.logColor
-			_.debugColor = crxSettings.debugColor || _.debugColor
-			_.infoColor = crxSettings.infoColor || _.infoColor
-			_.warnColor = crxSettings.warnColor || _.warnColor
-			_.errorColor = crxSettings.errorColor || _.errorColor
+		function init () {
+			const core_settings = PlugXT.core.settings
+			console.log('core_settings', PlugXT.core)
+			_.extensionName = core_settings.extensionName || _.extensionName
+			_.logPrefix = core_settings.logPrefix || _.logPrefix
+			_.logColor = core_settings.logColor || _.logColor
+			_.debugColor = core_settings.debugColor || _.debugColor
+			_.infoColor = core_settings.infoColor || _.infoColor
+			_.warnColor = core_settings.warnColor || _.warnColor
+			_.errorColor = core_settings.errorColor || _.errorColor
 
 			if (_.originalWindowConsole) {
 				console.warn('core.console.init', 'skipping already overridden window.console')
@@ -147,14 +175,15 @@ void function startExtensionGlobalObject() {
 
 			console.debug('core.console.init', 'window.console overridden')
 		}
-	})()
+	}
 
-	CRX.core.event = (function ExtensionCoreEventModuleBuilder () {
+	/* PlugXT.core.event */
+	function buildCoreEventModule (PlugXT) {
 		const _ = {
 			handlers: null,
 			history: null
 		}
-		const module = function ExtensionCoreEventModule () {}
+		const module = function PlugXTCoreEventModule () {}
 		return Object.assign(module, {
 			init () { init() },
 			on(type, fn) { return on(type, fn) },
@@ -184,29 +213,27 @@ void function startExtensionGlobalObject() {
 			_.history.get(type).push(payload)
 			_.handlers.get(type)?.forEach(fn => fn(payload))
 		}
-	})()
+	}
 
-	CRX.core.fetch = (function ExtensionCoreFetchModuleBuilder () {
+	/* PlugXT.core.fetch */
+	function buildCoreFetchModule (PlugXT) {
 		const _ = {
 			originalWindowFetch: null,
+			send: null,
 			fetchWithEvents,
-			send
 		}
-		const module = function ExtensionCoreFetchModule () {}
+		const module = function PlugXTCoreFetchModule () {}
 		return Object.assign(module, {
 			init () { init() },
 			__internals: _
 		})
 
 		function init () {
+			_.send = PlugXT.core.event.send
 			if (_.originalWindowFetch) return console.warn('core.fetch.init', 'window.fetch already overridden by fetch, skip')
 			_.originalWindowFetch = window.fetch
 			window.fetch = _.fetchWithEvents
 			console.debug('core.fetch.init', 'window.fetch overridden')
-		}
-
-		function send(type, payload) {
-			CRX.core.event.send(type, payload)
 		}
 
 		async function fetchWithEvents(url, ...args) {
@@ -220,7 +247,7 @@ void function startExtensionGlobalObject() {
 				throw error
 			}
 		}
-	})()
+	}
 
 	/*
 	Q.main = async () => {
@@ -299,4 +326,4 @@ void function startExtensionGlobalObject() {
 
 	*/
 
-}()
+})()
