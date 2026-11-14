@@ -2,328 +2,616 @@
 
 /**
  * PlugXT - Plug Extensions
- * Create browser extensions easily.
- * Check /plugxt.md for more info.
+ * Create browser extensions easily (runs in the page's main world).
+ *
+ * - Single entry point: one (optionally global) protected namespace tree, e.g. PlugXT.core.event.on(...)
+ * - Plug anything:   PlugXT.define('pkg.mod', value)   |   PlugXT.use({ name, deps, defaults, create })
+ * - Settings come from settings.js through boot.js as a single JSON (data-settings), already typed.
  */
-void (() => {
-	return initializePlugXT(document.currentScript.dataset)
+;(() => {
+	const script = document.currentScript
+	if (!script) throw new Error('PlugXT: must be loaded through a <script> tag')
 
-	/* Creates PlugXT.core and PlugXT.f */
-	function initializePlugXT (scriptDatasetObject) {
-		const globalVar = scriptDatasetObject.extensionGlobalVariable || 'PlugXT'
+	const config = readConfig(script)
+	const globalVar = validGlobalName(config.extensionGlobalVariable)
+	const exposeGlobal = config.exposeGlobal === true
+	const exposeInternals = config.exposeInternals === true
+	const strictNamespaces = config.strictNamespaces !== false
 
-		/* Singleton instance of PlugXT */
-		const PlugXT = new function PlugExtension () {
-			const plugXTInstance = new Proxy(this, getPlugXTProxyHandler(globalVar))
-			plugXTInstance.core = buildCorePackage(plugXTInstance)
-			plugXTInstance.core.settings = buildCoreSettingsModule(plugXTInstance, scriptDatasetObject)
-			plugXTInstance.core.console = buildCoreConsoleModule(plugXTInstance)
-			plugXTInstance.core.event = buildCoreEventModule(plugXTInstance)
-			plugXTInstance.core.fetch = buildCoreFetchModule(plugXTInstance)
-			plugXTInstance.f = {
-				get currentScript () {
-					const { currentScript } = document
-					if (!currentScript) return
-					return currentScript.src.split('//')[1].split('/').slice(1).join('/')
-				}
-			}
-			return plugXTInstance
-		}
+	/* ================================================================== *
+	 * Namespaces: protected tree (get on undefined throws, no overwrite) *
+	 * ================================================================== */
 
-		/* Sets PlugXT to a global (window) variable */
-		window[scriptDatasetObject.extensionGlobalVariable] = PlugXT
+	const PASSTHROUGH = new Set(['then', 'toJSON', 'constructor', '$$typeof'])
+	const metas = new WeakMap() /* namespace proxy -> { raw, path } */
+	const rawMarked = new WeakSet() /* objects that must NOT become namespaces (mutable state) */
 
-		/* Initializes PlugXT core package */
-		PlugXT.core.init()
+	function isPlainObject (value) {
+		if (value === null || typeof value !== 'object') return false
+		const proto = Object.getPrototypeOf(value)
+		/* Object.prototype of any realm has a null prototype; class instances do not */
+		return proto === null || Object.getPrototypeOf(proto) === null
 	}
 
-	function getPlugXTProxyHandler(objName) {
-		return {
-			get(target, prop) {
-				if (typeof prop === 'symbol') return Reflect.get(target, prop)
-				if (prop in target) return target[prop]
-				throw new Error(`${objName}.${String(prop)} is not defined`)
+	function createNamespace (path) {
+		const raw = Object.create(null)
+		Object.defineProperty(raw, Symbol.toStringTag, { value: `Namespace(${path})` })
+		const deny = what => () => { throw new TypeError(`${path}: ${what} is not allowed`) }
+		const proxy = new Proxy(raw, {
+			get (target, prop) {
+				if (typeof prop === 'symbol' || prop in target) return Reflect.get(target, prop, target)
+				if (PASSTHROUGH.has(prop)) return undefined
+				const message = `${path}.${prop} is not defined`
+				if (strictNamespaces) throw new ReferenceError(message)
+				console.warn('core.namespace', message)
+				return undefined
 			},
-			set(target, prop, value) {
-				if (prop in target) throw new Error(`${objName}.${String(prop)} is already defined`)
-				target[prop] = value
+			set (target, prop, value) {
+				if (typeof prop === 'symbol') throw new TypeError(`${path}: symbol keys are not allowed`)
+				if (prop in target) throw new TypeError(`${path}.${prop} is already defined`)
+				defineIn(proxy, prop, value)
 				return true
-			}
-		}
-	}
-
-	/* PlugXT.core */
-	function buildCorePackage (PlugXT) {
-		const _ = {
-			error: null
-		}
-		const module = function PlugXTCoreModule () {}
-		return Object.assign(module, {
-			async init () { return init (PlugXT.core.settings) },
-			__internals: _
+			},
+			deleteProperty: deny('delete'),
+			defineProperty: deny('defineProperty'),
+			setPrototypeOf: deny('setPrototypeOf'),
+			preventExtensions: deny('preventExtensions'),
 		})
+		metas.set(proxy, { raw, path })
+		return proxy
+	}
 
-		async function init() {
-			if (_.error === false) {
-				console.warn('core', 'already initialized successfully, skip')
-				return
-			}
-			try {
-				PlugXT.core.settings.init()
-				PlugXT.core.console.init()
-				await Promise.all([
-					PlugXT.core.event.init(),
-					PlugXT.core.fetch.init()
-				])
-				console.info('core', 'initialized')
-				_.error = false
-			} catch (e) {
-				_.error = e
-				console.error('core', 'error initializing', e)
+	/* Plain objects become (recursively) protected namespaces; everything else is stored as is. */
+	function wrap (value, path, seen) {
+		if (!isPlainObject(value) || metas.has(value) || rawMarked.has(value)) return value
+		if (seen.has(value)) return seen.get(value)
+		const namespace = createNamespace(path)
+		seen.set(value, namespace)
+		const { raw } = metas.get(namespace)
+		for (const [key, desc] of Object.entries(Object.getOwnPropertyDescriptors(value))) {
+			if (key === '__proto__') throw new TypeError(`${path}: invalid key "__proto__"`)
+			if ('value' in desc) {
+				Object.defineProperty(raw, key, {
+					value: wrap(desc.value, `${path}.${key}`, seen),
+					enumerable: desc.enumerable, writable: false, configurable: true,
+				})
+			} else {
+				Object.defineProperty(raw, key, { get: desc.get, enumerable: desc.enumerable, configurable: true })
 			}
 		}
+		return namespace
 	}
+
+	function defineIn (namespace, key, value, { override = false } = {}) {
+		const meta = metas.get(namespace)
+		if (!meta) throw new TypeError('not a PlugXT namespace')
+		if (typeof key !== 'string' || key === '' || key === '__proto__') throw new TypeError(`${meta.path}: invalid key "${String(key)}"`)
+		if (key in meta.raw && !override) throw new TypeError(`${meta.path}.${key} is already defined`)
+		const stored = wrap(value, `${meta.path}.${key}`, new Map())
+		Object.defineProperty(meta.raw, key, { value: stored, enumerable: true, writable: false, configurable: true })
+		return stored
+	}
+
+	const SEGMENT = /^[A-Za-z_$][\w$]*$/
+
+	/* define(root, 'a.b.c', value) creates missing intermediate namespaces. */
+	function define (root, path, value, options) {
+		const segments = String(path).split('.')
+		if (!segments.every(segment => SEGMENT.test(segment) && segment !== '__proto__')) throw new TypeError(`invalid path "${path}"`)
+		const key = segments.pop()
+		let node = root
+		for (const segment of segments) {
+			const meta = metas.get(node)
+			if (!(segment in meta.raw)) defineIn(node, segment, {})
+			node = meta.raw[segment]
+			if (!metas.has(node)) throw new TypeError(`${meta.path}.${segment} is not a namespace`)
+		}
+		return defineIn(node, key, value, options)
+	}
+
+	function rawMark (value) {
+		if (value !== null && typeof value === 'object') rawMarked.add(value)
+		return value
+	}
+
+	const PlugXT = createNamespace(globalVar)
+
+	/* ================================================================== *
+	 * Global variable gate (private by default)                          *
+	 * ================================================================== */
+
+	/* Scripts being loaded by core.loader. window[globalVar] only answers to them. */
+	const trusted = new Set()
+
+	const gate = (() => {
+		let holders = 0
+		const getter = () => (trusted.has(document.currentScript) ? PlugXT : undefined)
+		const descriptor = {
+			configurable: true,
+			enumerable: false,
+			get: getter,
+			/* the page wins if it assigns the same name */
+			set (value) {
+				Object.defineProperty(window, globalVar, { value, writable: true, configurable: true, enumerable: true })
+			},
+		}
+		return {
+			acquire () {
+				if (exposeGlobal) return
+				if (holders === 0) {
+					if (globalVar in window) throw new Error(`window.${globalVar} is already defined by the page`)
+					Object.defineProperty(window, globalVar, descriptor)
+				}
+				holders++
+			},
+			release () {
+				if (exposeGlobal || holders === 0) return
+				if (--holders > 0) return
+				if (Object.getOwnPropertyDescriptor(window, globalVar)?.get === getter) delete window[globalVar]
+			},
+		}
+	})()
+
+	/* ================================================================== *
+	 * Module system                                                      *
+	 * ================================================================== */
+
+	const registry = new Map() /* name -> entry */
+	const order = []
+	let state = 'idle' /* idle | starting | ready | failed | destroyed */
+	const ready = deferred()
+	ready.promise.catch(() => {})
+
+	function use (spec) {
+		if (!spec || typeof spec !== 'object') throw new TypeError('use(spec): spec must be an object')
+		if (typeof spec.name !== 'string' || !spec.name.split('.').every(s => SEGMENT.test(s))) throw new TypeError(`use(spec): invalid name "${spec.name}"`)
+		if (typeof spec.create !== 'function') throw new TypeError(`use("${spec.name}"): create must be a function`)
+		if (registry.has(spec.name)) throw new Error(`module "${spec.name}" is already registered`)
+		const entry = {
+			spec: { name: spec.name, deps: [...(spec.deps || [])], defaults: spec.defaults || {}, create: spec.create },
+			state: 'registered',
+			instance: null,
+			done: deferred(),
+		}
+		entry.done.promise.catch(() => {})
+		registry.set(spec.name, entry)
+		order.push(entry)
+		if (state === 'ready') initModule(entry).catch(() => {})
+		return entry.done.promise
+	}
+
+	function moduleSettings (spec) {
+		const out = {}
+		for (const [key, fallback] of Object.entries(spec.defaults)) {
+			const value = config[key]
+			const sameType = value !== undefined && typeof value === typeof fallback && Array.isArray(value) === Array.isArray(fallback)
+			if (value !== undefined && !sameType) console.warn('core.settings', `"${key}" should be ${Array.isArray(fallback) ? 'array' : typeof fallback}, using default`)
+			out[key] = sameType ? value : fallback
+		}
+		return Object.freeze(out)
+	}
+
+	async function initModule (entry) {
+		const { spec } = entry
+		try {
+			for (const dep of spec.deps) {
+				if (registry.get(dep)?.state !== 'initialized') throw new Error(`module "${spec.name}" requires "${dep}", which is not initialized`)
+			}
+			const ctx = Object.freeze({ PlugXT, settings: moduleSettings(spec), host: Object.freeze({ trusted, gate }) })
+			const result = (await spec.create(ctx)) || {}
+			if (result.api !== undefined) {
+				const api = define(PlugXT, spec.name, result.api)
+				if (exposeInternals && result.internals && metas.has(api)) defineIn(api, '__internals', rawMark(result.internals))
+			}
+			if (result.init) await result.init()
+			entry.instance = result
+			entry.state = 'initialized'
+			entry.done.resolve()
+		} catch (error) {
+			entry.state = 'failed'
+			console.error('core', `module "${spec.name}" failed to initialize`, error)
+			entry.done.reject(error)
+			throw error
+		}
+	}
+
+	/* Dependencies first, registration order otherwise. */
+	function sortPending () {
+		const sorted = []
+		const visiting = new Set()
+		const visit = entry => {
+			if (entry.state !== 'registered' || sorted.includes(entry)) return
+			if (visiting.has(entry)) throw new Error(`circular dependency involving "${entry.spec.name}"`)
+			visiting.add(entry)
+			for (const dep of entry.spec.deps) {
+				const depEntry = registry.get(dep)
+				if (!depEntry) throw new Error(`module "${entry.spec.name}" requires "${dep}", which is not registered`)
+				visit(depEntry)
+			}
+			visiting.delete(entry)
+			sorted.push(entry)
+		}
+		order.forEach(visit)
+		return sorted
+	}
+
+	async function start () {
+		state = 'starting'
+		try {
+			if (exposeGlobal) {
+				if (globalVar in window) throw new Error(`window.${globalVar} is already defined by the page`)
+				Object.defineProperty(window, globalVar, { value: PlugXT, enumerable: false, writable: false, configurable: false })
+			}
+			for (const entry of sortPending()) await initModule(entry)
+			state = 'ready'
+			console.info('core', 'initialized')
+			PlugXT.core.event.send('core-ready')
+			ready.resolve()
+		} catch (error) {
+			state = 'failed'
+			console.error('core', 'error initializing', error)
+			ready.reject(error)
+			return
+		}
+		/* Core fully initialized: import every extension script, in order. */
+		await PlugXT.core.loader.loadAll([].concat(config.extensionScripts ?? []))
+	}
+
+	async function destroy () {
+		for (const entry of [...order].reverse()) {
+			if (entry.state !== 'initialized') continue
+			try { await entry.instance.destroy?.() } catch (error) { console.error('core', `module "${entry.spec.name}" failed to destroy`, error) }
+			entry.state = 'destroyed'
+		}
+		state = 'destroyed'
+	}
+
+	/* ================================================================== *
+	 * Public surface                                                     *
+	 * ================================================================== */
+
+	defineIn(PlugXT, 'define', (path, value, options) => define(PlugXT, path, value, options))
+	defineIn(PlugXT, 'use', use)
+
+	define(PlugXT, 'core', {
+		ready: ready.promise,
+		get state () { return state },
+		destroy,
+	})
+
+	define(PlugXT, 'f', {
+		/* Marks an object as plain state: it is stored as is, not converted into a protected namespace. */
+		raw: rawMark,
+		/* Path (relative to the extension root) of the script being executed right now. */
+		get currentScript () {
+			const src = document.currentScript?.src
+			if (!src) return undefined
+			try { return new URL(src).pathname.replace(/^\/+/, '') } catch { return undefined }
+		},
+	})
+
+	/* ================================================================== *
+	 * Built-in modules                                                   *
+	 * ================================================================== */
 
 	/* PlugXT.core.settings */
-	function buildCoreSettingsModule (_PlugXT, settings) {
-		const _ = Object.seal({
-			moduleScripts: null,
-			extensionGlobalVariable: null,
-			extensionName: null,
-			logPrefix: null,
-			logColor: null,
-			debugColor: null,
-			infoColor: null,
-			warnColor: null,
-			errorColor: null,
-			chromeRuntimeUrl: null,
-		})
-
-		const module = function PlugXTSettingsModule () { return _ }
-		module.init = function () {
-			for (const key of Object.keys(_)) {
-				try {
-					_[key] = settings[key] || _[key]
-				} catch (e) {
-					console.error(e)
-				}
+	use({
+		name: 'core.settings',
+		create () {
+			return {
+				api: {
+					get: (key, fallback) => config[key] ?? fallback,
+					has: key => key in config,
+					all: () => config,
+				},
 			}
-			console.log(settings)
-		}
-		module.__internals = _
-
-		for (const key of Object.keys(_)) {
-			Object.defineProperty(module, key, {
-				get() { return _[key] },
-				set(value) { _[key] = value },
-				configurable: true,
-				enumerable: true,
-			})
-		}
-
-		return Object.seal(module)
-	}
+		},
+	})
 
 	/* PlugXT.core.console */
-	function buildCoreConsoleModule (PlugXT) {
-		const _ = {
-			originalWindowConsole: null,
+	use({
+		name: 'core.console',
+		defaults: {
+			overrideConsole: true,
+			extensionName: '',
 			logPrefix: 'CRX',
-			formatString: {
-				get short() { return `%c${_.now()} %c%s` },
-				get complete() { return `%c${_.logPrefix} %c${_.now()} %c[${_.extensionName}.%s]` }
-			},
-			get bold () { return 'font-weight: bold' },
-			get cLog () { return `color: ${_.logColor}; ${_.bold}` },
-			get cDebug () { return `color: ${_.debugColor}; ${_.bold}` },
-			get cInfo () { return `color: ${_.infoColor}; ${_.bold}` },
-			get cWarn () { return `color: ${_.warnColor}; ${_.bold}` },
-			get cError () { return `color: ${_.errorColor}; ${_.bold}` },
-			now: () => (performance.now() / 1000).toFixed(2)
-		}
-		const module = function PlugXTCoreConsoleModule () {}
-		return Object.assign(module, {
-			init () { return init(PlugXT.core.settings) },
-			__internals: _
-		})
+			logColor: '#999999',
+			debugColor: '#999999',
+			infoColor: '#999999',
+			warnColor: '#999999',
+			errorColor: '#999999',
+		},
+		create ({ settings }) {
+			const METHODS = ['log', 'debug', 'info', 'warn', 'error']
+			const originals = new Map() /* method -> original descriptor */
+			const bold = 'font-weight: bold'
+			const esc = text => String(text).replaceAll('%', '%%')
+			const now = () => (performance.now() / 1000).toFixed(2)
+			const style = color => `color: ${color}; ${bold}`
+			const scope = settings.extensionName ? `${esc(settings.extensionName)}.%s` : '%s'
 
-		function init () {
-			const core_settings = PlugXT.core.settings
-			console.log('core_settings', PlugXT.core)
-			_.extensionName = core_settings.extensionName || _.extensionName
-			_.logPrefix = core_settings.logPrefix || _.logPrefix
-			_.logColor = core_settings.logColor || _.logColor
-			_.debugColor = core_settings.debugColor || _.debugColor
-			_.infoColor = core_settings.infoColor || _.infoColor
-			_.warnColor = core_settings.warnColor || _.warnColor
-			_.errorColor = core_settings.errorColor || _.errorColor
-
-			if (_.originalWindowConsole) {
-				console.warn('core.console.init', 'skipping already overridden window.console')
-				return
+			/* log: "<time> args..."   others: "<prefix> <time> [<extension>.<first arg>] args..." */
+			const format = method => {
+				const color = settings[`${method}Color`]
+				if (method === 'log') return () => [`%c${now()}%c`, style(color), '']
+				return () => [`%c${esc(settings.logPrefix)} %c${now()} %c[${scope}]`, style(color), bold, style(color)]
 			}
 
-			const { log, debug, info, error, warn } = _.originalWindowConsole = console
-			Object.defineProperties(console, {
-				log: { get: () => log.bind(console, _.formatString.short, _.cLog, _.bold) },
-				debug: { get: () => debug.bind(console, _.formatString.complete, _.cDebug, _.bold, _.cDebug) },
-				info: { get: () => info.bind(console, _.formatString.complete, _.cInfo, _.bold, _.cInfo) },
-				warn: { get: () => warn.bind(console, _.formatString.complete, _.cWarn, _.bold, _.cWarn) },
-				error: { get: () => error.bind(console, _.formatString.complete, _.cError, _.bold, _.cError) },
-			})
-			Object.freeze(console)
+			const active = () => originals.size > 0
 
-			console.debug('core.console.init', 'window.console overridden')
-		}
-	}
+			function apply () {
+				if (active()) return
+				for (const method of METHODS) {
+					const descriptor = Object.getOwnPropertyDescriptor(console, method)
+					const original = descriptor && 'value' in descriptor ? descriptor.value : console[method]
+					originals.set(method, descriptor)
+					const build = format(method)
+					/* getter + bind keeps the caller's file:line in the DevTools console */
+					Object.defineProperty(console, method, {
+						configurable: true,
+						enumerable: true,
+						get: () => original.bind(console, ...build()),
+						set (value) { /* the page wins if it assigns its own console method */
+							Object.defineProperty(console, method, { value, writable: true, configurable: true, enumerable: true })
+						},
+					})
+				}
+				console.debug('core.console', 'window.console overridden')
+			}
+
+			function restore () {
+				for (const [method, descriptor] of originals) {
+					if (descriptor) Object.defineProperty(console, method, descriptor)
+					else delete console[method]
+				}
+				originals.clear()
+			}
+
+			return {
+				api: { get active () { return active() }, restore },
+				init () { if (settings.overrideConsole) apply() },
+				destroy: restore,
+			}
+		},
+	})
 
 	/* PlugXT.core.event */
-	function buildCoreEventModule (PlugXT) {
-		const _ = {
-			handlers: null,
-			history: null
-		}
-		const module = function PlugXTCoreEventModule () {}
-		return Object.assign(module, {
-			init () { init() },
-			on(type, fn) { return on(type, fn) },
-			send(type, payload) { return send(type, payload) },
-			__internals: _
-		})
+	use({
+		name: 'core.event',
+		defaults: { eventHistory: true, eventHistoryMax: 0 },
+		create ({ settings }) {
+			const handlers = new Map() /* pattern -> Set<fn> */
+			const history = [] /* [{ type, payload }] in chronological order */
+			const stoppedTypes = new Set()
+			let recording = settings.eventHistory
 
-		function init () {
-			if (_.handlers) {
-				console.warn('core.event.init', 'already initialized, skip')
-				return
+			const matches = (pattern, type) =>
+				pattern === '*' || pattern === type || (pattern.endsWith('*') && type.startsWith(pattern.slice(0, -1)))
+
+			const safeCall = (fn, payload, type) => {
+				try { fn(payload, type) } catch (error) { console.error('core.event', `handler for "${type}" threw`, error) }
 			}
-			_.handlers = new Map()
-			_.history = new Map()
-			console.debug('core.event.init', 'ok')
-		}
 
-		function on(type, fn) {
-			if (!_.handlers.has(type)) _.handlers.set(type, new Set())
-			_.handlers.get(type).add(fn)
-			_.history.get(type)?.forEach(payload => fn(payload))
-			return function off() { _.handlers.get(type)?.delete(fn) }
-		}
-
-		function send(type, payload) {
-			if (!_.history.has(type)) _.history.set(type, [])
-			_.history.get(type).push(payload)
-			_.handlers.get(type)?.forEach(fn => fn(payload))
-		}
-	}
-
-	/* PlugXT.core.fetch */
-	function buildCoreFetchModule (PlugXT) {
-		const _ = {
-			originalWindowFetch: null,
-			send: null,
-			fetchWithEvents,
-		}
-		const module = function PlugXTCoreFetchModule () {}
-		return Object.assign(module, {
-			init () { init() },
-			__internals: _
-		})
-
-		function init () {
-			_.send = PlugXT.core.event.send
-			if (_.originalWindowFetch) return console.warn('core.fetch.init', 'window.fetch already overridden by fetch, skip')
-			_.originalWindowFetch = window.fetch
-			window.fetch = _.fetchWithEvents
-			console.debug('core.fetch.init', 'window.fetch overridden')
-		}
-
-		async function fetchWithEvents(url, ...args) {
-			_.send('fetch-before', { url, args })
-			try {
-				const response = await _.originalWindowFetch.apply(this, [url, ...args])
-				_.send('fetch-success', { url, args, response: response.clone() })
-				return response
-			} catch (error) {
-				_.send('fetch-error', { url, args, error })
-				throw error
+			function on (pattern, fn, { replay = true } = {}) {
+				if (typeof pattern !== 'string' || typeof fn !== 'function') throw new TypeError('on(pattern: string, fn: function)')
+				if (!handlers.has(pattern)) handlers.set(pattern, new Set())
+				handlers.get(pattern).add(fn)
+				if (replay) {
+					for (const event of history.slice()) {
+						if (matches(pattern, event.type)) safeCall(fn, event.payload, event.type)
+					}
+				}
+				return () => off(pattern, fn)
 			}
-		}
-	}
 
-	/*
-	Q.main = async () => {
-		try {
-			await Promise.all([
-				Q.loadCss('pages/qxv.css').then(() => Q.debug('main', 'css loaded').andLog()),
-				Q.loadJs('libs/jsml.js').then(() => Q.debug('main', 'lib-jsml loaded').andLog()),
-			]);
-			await Promise.all([
-				Q.loadJs('pages/debug-panel.js').then(() => Q.debug('main', 'debug-panel loaded').andLog()),
-				Q.loadJs('pages/router.js').then(() => Q.debug('main', 'router loaded').andLog()),
-				Q.loadJs('libs/waitfor.js').then(() => Q.debug('main', 'lib-waitfor loaded').andLog()),
-			])
-			Q.whenBodyReady(() => {
-				const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-				document.documentElement.style.setProperty('--scrollbar-width', `${scrollbarWidth}px`);
-				Q.main.setFocusBlurInterceptor()
-				Q.initialized = true
-				Q.info('main', 'started successfully').andLog()
-			})
-		} catch (e) {
-			Q.error('main', 'error starting', e).andLog()
-		}
-	}
+			function once (pattern, fn, options) {
+				let fired = false
+				let stop
+				stop = on(pattern, (payload, type) => {
+					if (fired) return
+					fired = true
+					stop?.()
+					fn(payload, type)
+				}, options)
+				if (fired) stop()
+				return stop
+			}
 
-	Q.main.setFocusBlurInterceptor = async () => {
-		try {
-			const { body } = document
-			const toggleDebug = () => body.classList.toggle('qx-debug')
-			body.addEventListener('keydown', k => {
-				if (k.key === 'Control' && k.altKey) toggleDebug()
-				if (k.key === 'Alt' && k.ctrlKey) toggleDebug()
-			})
-			Q.debug('main.setFocusBlurInterceptor', 'started successfully').andLog()
-		} catch (e) {
-			Q.error('main.setFocusBlurInterceptor', 'error starting', e).andLog()
-		}
-	}
+			function off (pattern, fn) {
+				handlers.get(pattern)?.delete(fn)
+			}
 
-	Q.getUrl = (() => {
-		const chromeRuntimeUrl = document.currentScript.getAttribute('data-chrome-runtime-url');
-		return url => `${chromeRuntimeUrl}${url}`
-	})();
+			function send (type, payload) {
+				if (typeof type !== 'string') throw new TypeError('send(type: string, payload)')
+				if (recording && !stoppedTypes.has(type)) {
+					history.push({ type, payload })
+					if (settings.eventHistoryMax > 0 && history.length > settings.eventHistoryMax) history.shift()
+				}
+				for (const [pattern, set] of handlers) {
+					if (!matches(pattern, type)) continue
+					for (const fn of [...set]) safeCall(fn, payload, type)
+				}
+			}
 
-	Q.loadCss = cssUrl => new Promise((resolve, reject) => {
-		const link = document.createElement('link');
-		link.rel = 'stylesheet';
-		link.href = Q.getUrl(cssUrl);
-		(document.head || document.documentElement).appendChild(link);
-		link.onload = () => resolve()
-		link.onerror = () => reject()
+			/* Stops storing new events (all types, or just `type`). Keeps what is already stored. */
+			function stopRecording (type) {
+				if (type === undefined) recording = false
+				else stoppedTypes.add(type)
+			}
+
+			/* Drops stored events (all, or just `type`). Keeps recording. */
+			function clearHistory (type) {
+				if (type === undefined) { history.length = 0; return }
+				for (let i = history.length - 1; i >= 0; i--) if (history[i].type === type) history.splice(i, 1)
+			}
+
+			/* clearHistory + stopRecording: frees the memory and stops accumulating. */
+			function releaseHistory (type) {
+				clearHistory(type)
+				stopRecording(type)
+			}
+
+			return {
+				api: { on, once, off, send, stopRecording, clearHistory, releaseHistory },
+				internals: { handlers, history },
+				destroy () { handlers.clear(); history.length = 0 },
+			}
+		},
 	})
 
-	Q.loadJs = scriptUrl => new Promise((resolve, reject) => {
-		const script = document.createElement('script');
-		script.src = Q.getUrl(scriptUrl);
-		script.onload = () => { script.remove(); resolve(script) }
-		script.onerror = e => { script.remove(); reject(e) }
-		const elem = (document.head || document.documentElement)
-		if (!elem) {
-			Q.error('loadJs', 'ERROR: cannot add script!\n', script.src).andLog()
-		}
-		elem.prepend(script);
+	/* PlugXT.core.fetch  ->  events: fetch-before | fetch-success | fetch-error */
+	use({
+		name: 'core.fetch',
+		deps: ['core.event'],
+		defaults: { interceptFetch: true, fetchStoreResponse: true },
+		create ({ PlugXT, settings }) {
+			let original = null
+			let wrapper = null
+			let seq = 0
+
+			function describe ([input, init]) {
+				const isRequest = typeof Request !== 'undefined' && input instanceof Request
+				const url = String(isRequest ? input.url : input)
+				const method = String(init?.method ?? (isRequest ? input.method : 'GET')).toUpperCase()
+				return { url, method }
+			}
+
+			async function fetchWithEvents (...args) {
+				const events = PlugXT.core.event
+				const info = { id: ++seq, ...describe(args), args }
+				events.send('fetch-before', info)
+				try {
+					const response = await original.apply(window, args)
+					events.send('fetch-success', {
+						...info,
+						status: response.status,
+						ok: response.ok,
+						/* handlers must call response.clone() before reading the body */
+						response: settings.fetchStoreResponse ? response.clone() : undefined,
+					})
+					return response
+				} catch (error) {
+					events.send('fetch-error', { ...info, error })
+					throw error
+				}
+			}
+
+			return {
+				api: { get active () { return wrapper !== null && window.fetch === wrapper } },
+				init () {
+					if (!settings.interceptFetch) return
+					original = window.fetch
+					wrapper = fetchWithEvents
+					Object.defineProperty(wrapper, 'name', { value: 'fetch' })
+					window.fetch = wrapper
+					console.debug('core.fetch', 'window.fetch overridden')
+				},
+				destroy () {
+					if (wrapper && window.fetch === wrapper) window.fetch = original
+					wrapper = null
+				},
+			}
+		},
 	})
 
-	Q.whenBodyReady = callback => {
-		console.info('bodyReady?', !!document.body)
-		document.body ? callback() : document.addEventListener('DOMContentLoaded', callback)
+	/* PlugXT.core.loader: imports the extension's own scripts into the main world */
+	use({
+		name: 'core.loader',
+		deps: ['core.event'],
+		defaults: { dev: false, chromeRuntimeUrl: '' },
+		create ({ PlugXT, settings, host }) {
+			const base = settings.chromeRuntimeUrl ? new URL(settings.chromeRuntimeUrl) : null
+
+			function resolveUrl (path) {
+				if (!base) throw new Error('chromeRuntimeUrl is not set')
+				const url = new URL(String(path), base)
+				if (url.protocol !== base.protocol || url.host !== base.host) throw new Error(`"${path}" is outside the extension`)
+				if (settings.dev) url.searchParams.set('v', Date.now())
+				return url
+			}
+
+			/* Classic scripts only (document.currentScript is null in modules). */
+			function load (path) {
+				return new Promise((resolve, reject) => {
+					const url = resolveUrl(path)
+					host.gate.acquire()
+					const el = document.createElement('script')
+					el.async = false
+					el.src = url.href
+					host.trusted.add(el)
+					const finish = (settle, arg) => {
+						el.remove()
+						host.trusted.delete(el)
+						host.gate.release()
+						settle(arg)
+					}
+					el.onload = () => finish(resolve)
+					el.onerror = () => finish(reject, new Error(`unable to load "${path}"`))
+					try {
+						const parent = document.head || document.documentElement
+						parent.append(el)
+					} catch (error) {
+						finish(reject, error)
+					}
+				})
+			}
+
+			/* Sequential (keeps order); one failing script does not stop the others. */
+			async function loadAll (paths) {
+				const events = PlugXT.core.event
+				const results = []
+				for (const path of paths) {
+					try {
+						await load(path)
+						console.info('core.loader', `loaded "${path}"`)
+						events.send('extension-loaded', { path })
+						results.push({ path, ok: true })
+					} catch (error) {
+						console.error('core.loader', `error loading "${path}"`, error)
+						events.send('extension-error', { path, error })
+						results.push({ path, ok: false, error })
+					}
+				}
+				events.send('extensions-ready', { results })
+				return results
+			}
+
+			return { api: { load, loadAll } }
+		},
+	})
+
+	/* ================================================================== *
+	 * Helpers                                                            *
+	 * ================================================================== */
+
+	function readConfig (element) {
+		try {
+			return deepFreeze(JSON.parse(element.dataset.settings || '{}'))
+		} catch (error) {
+			console.error('PlugXT: invalid data-settings JSON', error)
+			return Object.freeze({})
+		}
 	}
 
-	Q.queryStringToObject = url =>
-		Object.fromEntries([...new URLSearchParams(url.split('?')[1])]);
+	function deepFreeze (value) {
+		if (value && typeof value === 'object' && !Object.isFrozen(value)) {
+			Object.values(value).forEach(deepFreeze)
+			Object.freeze(value)
+		}
+		return value
+	}
 
+	function validGlobalName (name) {
+		if (typeof name === 'string' && /^[A-Za-z_$][\w$]*$/.test(name)) return name
+		if (name !== undefined) console.warn('PlugXT: invalid extensionGlobalVariable, using "PlugXT"')
+		return 'PlugXT'
+	}
 
-	Q.main()
+	function deferred () {
+		const d = {}
+		d.promise = new Promise((resolve, reject) => { d.resolve = resolve; d.reject = reject })
+		return d
+	}
 
-	*/
-
+	start()
 })()

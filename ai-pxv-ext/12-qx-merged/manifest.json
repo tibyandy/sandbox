@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": ". Qxiv .",
   "short_name": "Qxiv",
-  "version": "0.2.0",
-  "description": "Better messages logs",
+  "version": "0.3.0",
+  "description": "Claude help",
   "host_permissions": [
     "https://*.pixiv.net/*",
     "https://script.google.com/*",
@@ -20,7 +20,7 @@
   },
   "web_accessible_resources": [
     {
-      "resources": [ "*" ],
+      "resources": [ "lib/*", "src/*" ],
       "matches": ["https://*.pixiv.net/*"]
     }
   ]
